@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Factory View - StitchTech ERP{% endblock %}
+{% block header_title %}Digital Factory View - Interactive Floor Monitoring{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-1">Live Factory Department Layout</h4>
+    <p class="text-muted small">Real-time floor layout across Cutting, Stitching, Quality Check, and Packing departments.</p>
+</div>
+
+<div class="row g-4 mb-4">
+    {% set dept_icons = {'Cutting': 'bi-scissors', 'Stitching': 'bi-thread', 'Quality Check': 'bi-patch-check-fill', 'Packing': 'bi-box-seam-fill'} %}
+    {% set dept_images = {
+        'Cutting': 'images/workers/dept_cutting.jpg',
+        'Stitching': 'images/workers/worker_sewing_bg.jpg',
+        'Quality Check': 'images/workers/dept_quality.jpg',
+        'Packing': 'images/delivery/apparel_delivery.jpg'
+    } %}
+
+    {% for dept_name, dept_info in dept_data.items() %}
+    <div class="col-lg-6">
+        <div class="glass-card p-4 dept-card h-100">
+            <div class="rounded-3 overflow-hidden mb-3 position-relative text-white p-3" style="background: linear-gradient(135deg, rgba(15,23,42,0.85), rgba(15,23,42,0.9)), url('{{ url_for('static', filename=dept_images[dept_name]) }}') center/cover no-repeat; min-height: 100px;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary text-white p-2 rounded-3 shadow-sm">
+                            <i class="bi {{ dept_icons[dept_name] }} fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-white brand-font">{{ dept_name }} Department</h5>
+                            <small class="text-slate-300"><span class="running-dot me-1"></span>Active Operations Line</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-primary fs-6 shadow">{{ dept_info.active_orders_count }} Active Orders</span>
+                </div>
+            </div>
+
+            <!-- Department Workload Progress -->
+            <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-between small mb-1">
+                    <span class="fw-semibold text-slate-700">Department Capacity Load</span>
+                    <span class="fw-bold text-primary">{{ dept_info.utilization_percent }}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-primary" style="width: {{ dept_info.utilization_percent }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Active Batches at Department -->
+            <h6 class="fw-bold text-slate-700 mb-2 small text-uppercase">Active Floor Batches:</h6>
+            <div class="vstack gap-2 mb-3">
+                {% for ord in dept_info.orders %}
+                <div class="p-2 rounded-3 bg-light border d-flex align-items-center justify-content-between small">
+                    <div>
+                        <span class="fw-bold text-primary">#{{ ord.id }}</span> - {{ ord.garment_type }} ({{ ord.quantity }} pcs)
+                    </div>
+                    <span class="badge bg-info-subtle text-info-emphasis">{{ ord.progress_percentage }}% Progress</span>
+                </div>
+                {% else %}
+                <div class="p-2 text-center text-muted small bg-light rounded-3">No active orders queued at this station.</div>
+                {% endfor %}
+            </div>
+
+            <!-- Department Resource Summary -->
+            <div class="row text-center g-2 pt-2 border-top">
+                <div class="col-6 border-end">
+                    <small class="text-muted d-block">Assigned Workers</small>
+                    <span class="fw-bold text-slate-800 fs-6"><i class="bi bi-people-fill text-primary me-1"></i>{{ dept_info.worker_count }} Personnel</span>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted d-block">Active Machinery</small>
+                    <span class="fw-bold text-slate-800 fs-6"><i class="bi bi-gear-wide-connected text-success me-1"></i>{{ dept_info.machine_count }} Machines</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

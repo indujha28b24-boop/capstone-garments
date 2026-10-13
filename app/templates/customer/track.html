@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Live Order Tracking - StitchTech ERP{% endblock %}
+
+{% block non_auth_content %}
+<div class="bg-slate-900 text-white min-vh-100 py-5">
+    <div class="container">
+        <!-- Header Nav -->
+        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom border-slate-800 pb-3">
+            <a href="/" class="text-white text-decoration-none d-flex align-items-center gap-2">
+                <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:40px; height:40px;">
+                    <i class="bi bi-scissors fs-4"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0 brand-font">FAB FORA ERP</h4>
+                    <small class="text-primary fw-semibold" style="font-size:0.6rem;">CUSTOMER QR TRACKER</small>
+                </div>
+            </a>
+
+            <a href="/" class="btn btn-outline-light btn-sm rounded-pill"><i class="bi bi-arrow-left me-1"></i> Back to Main Site</a>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left: Order Details & Stage Timeline -->
+            <div class="col-lg-8">
+                <div class="card glass-card text-slate-800 border-0 p-4 shadow-lg mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                        <div>
+                            <span class="badge bg-primary text-white px-3 py-1 mb-1">GARMENT ORDER #{{ order.id }}</span>
+                            <h3 class="fw-bold mb-0 text-slate-900">{{ order.garment_type }} Production Batch</h3>
+                        </div>
+                        <span class="badge bg-success fs-6 px-3 py-2">{{ order.status }}</span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3 col-6">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size:0.7rem;">Quantity</small>
+                            <span class="fw-bold fs-5 text-slate-800">{{ "{:,}".format(order.quantity) }} Pcs</span>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size:0.7rem;">Order Placed</small>
+                            <span class="fw-semibold text-slate-800">{{ order.order_date.strftime('%b %d, %Y') }}</span>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size:0.7rem;">Target Delivery</small>
+                            <span class="fw-bold text-primary fs-6">{{ order.deadline.strftime('%b %d, %Y') }}</span>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size:0.7rem;">Current Progress</small>
+                            <span class="fw-bold text-success fs-6">{{ order.progress_percentage }}%</span>
+                        </div>
+                    </div>
+
+                    <!-- Stage Progress Bar -->
+                    <div class="mb-4">
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" style="width: {{ order.progress_percentage }}%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Production Stage Timeline Workflow -->
+                    <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3-fill me-2 text-primary"></i>Live Production Stage Workflow</h5>
+                    
+                    <div class="vstack gap-2 my-3">
+                        {% set stage_icons = {
+                            'Order Confirmed': 'bi-file-earmark-check-fill',
+                            'Fabric Received': 'bi-box-seam-fill',
+                            'Cutting': 'bi-scissors',
+                            'Stitching': 'bi-thread',
+                            'Quality Check': 'bi-patch-check-fill',
+                            'Packing': 'bi-box2-fill',
+                            'Delivered': 'bi-truck'
+                        } %}
+
+                        {% for stg in stages %}
+                        {% set idx = loop.index0 %}
+                        <div class="p-3 rounded-3 border d-flex align-items-center justify-content-between transition-all {% if idx < current_index %}bg-success-subtle border-success-subtle{% elif idx == current_index %}bg-primary-subtle border-primary shadow-sm{% else %}bg-light border-slate-200 text-muted{% endif %}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold fs-6" style="width: 38px; height: 38px; {% if idx < current_index %}background:#10b981; color:#fff;{% elif idx == current_index %}background:#0284c7; color:#fff;{% else %}background:#cbd5e1; color:#475569;{% endif %}">
+                                    {% if idx < current_index %}
+                                        <i class="bi bi-check-lg"></i>
+                                    {% else %}
+                                        {{ idx + 1 }}
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-6 text-slate-800 d-flex align-items-center gap-2">
+                                        <i class="bi {{ stage_icons.get(stg, 'bi-gear') }} {% if idx <= current_index %}text-primary{% else %}text-muted{% endif %}"></i>
+                                        {{ stg }}
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                        {% if idx < current_index %}
+                                            Completed & Verified
+                                        {% elif idx == current_index %}
+                                            Active Production Line Operations
+                                        {% else %}
+                                            Pending Next Stage
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div>
+                                {% if idx < current_index %}
+                                    <span class="badge bg-success text-white px-3 py-1"><i class="bi bi-check-circle-fill me-1"></i> Completed</span>
+                                {% elif idx == current_index %}
+                                    <span class="badge bg-primary text-white px-3 py-1 shadow-sm"><span class="running-dot me-1"></span> IN PROGRESS</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary px-3 py-1">Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                </div>
+
+                <!-- Size-wise Production Progress -->
+                <div class="card glass-card text-slate-800 border-0 p-4 shadow-lg mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-rulers me-2 text-primary"></i>Size-wise Production Progress</h5>
+                    <div class="row g-3">
+                        {% for sq in order.size_quantities %}
+                        <div class="col-md-6 col-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge bg-primary">Size {{ sq.size }}</span>
+                                    <span class="fw-bold text-slate-800 small">{{ sq.completed_quantity }} / {{ sq.planned_quantity }} pcs</span>
+                                </div>
+                                {% set size_pct = (sq.completed_quantity / sq.planned_quantity * 100)|int if sq.planned_quantity > 0 else 0 %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 6px;">
+                                        <div class="progress-bar bg-success" style="width: {{ size_pct }}%;"></div>
+                                    </div>
+                                    <small class="fw-bold">{{ size_pct }}%</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: AI Delivery Risk & QR Code Card -->
+            <div class="col-lg-4">
+                <!-- AI Delivery Prediction Card -->
+                <div class="card glass-card text-slate-800 border-0 p-4 shadow-lg mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="bg-primary text-white p-2 rounded-3">
+                            <i class="bi bi-cpu-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">AI Delivery Prediction</h5>
+                            <small class="text-muted">Dynamic Risk Engine Analysis</small>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 mb-3 text-center badge-{{ risk_info.risk_level|lower|replace(' ', '-') }}">
+                        <div class="text-uppercase fw-extrabold fs-5 mb-1">{{ risk_info.risk_level }}</div>
+                        <div class="small fw-semibold">Delay Probability: {{ risk_info.probability }}%</div>
+                    </div>
+
+                    <p class="small text-muted mb-0"><i class="bi bi-info-circle-fill me-1 text-primary"></i>{{ risk_info.reason }}</p>
+                </div>
+
+                <!-- Verified QR Code Card -->
+                <div class="card glass-card text-slate-800 border-0 p-4 shadow-lg text-center mb-4">
+                    <h6 class="fw-bold mb-2">Verified Order QR Code</h6>
+                    <p class="small text-muted mb-3">Scan anytime for real-time mobile tracking updates.</p>
+
+                    <div class="bg-white p-3 d-inline-block rounded-3 border mb-3 shadow-sm mx-auto">
+                        <img src="{{ qr_code_url }}" alt="Order QR Code" class="img-fluid" style="max-width: 180px;">
+                    </div>
+
+                    <div class="small text-muted">Tracking ID: <code>{{ tracking_id }}</code></div>
+                </div>
+
+                <!-- Clothing Package Delivery Visual Card -->
+                <div class="card glass-card border-0 overflow-hidden shadow-lg text-white" style="background: linear-gradient(135deg, rgba(15,23,42,0.85), rgba(15,23,42,0.95)), url('{{ url_for('static', filename='images/delivery/apparel_delivery.jpg') }}') center/cover no-repeat; min-height: 180px;">
+                    <div class="p-4 my-auto">
+                        <div class="badge bg-success text-white px-3 py-1 mb-2"><i class="bi bi-truck me-1"></i> Verified Shipment</div>
+                        <h6 class="fw-bold mb-1">Industrial Apparel Logistics</h6>
+                        <small class="text-slate-300 d-block">Tracked from textile cutting line to final packaging & dispatch.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

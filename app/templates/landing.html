@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}StitchTech ERP - AI Garment Manufacturing Platform{% endblock %}
+
+{% block non_auth_content %}
+<div class="landing-wrapper bg-slate-900 text-white min-vh-100 d-flex flex-column">
+
+    <!-- Top Navigation Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-slate-900 border-bottom border-slate-800 py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:40px; height:40px;">
+                    <i class="bi bi-scissors fs-4"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0 brand-font">FAB FORA ERP</h4>
+                    <small class="text-primary fw-semibold" style="font-size:0.6rem; letter-spacing:1px;">FAB FORA INTERNATIONAL</small>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-3">
+                    <li class="nav-item"><a class="nav-link text-slate-300 active" href="#hero">Home</a></li>
+                    <li class="nav-item"><a class="nav-link text-slate-300" href="#features">AI Modules</a></li>
+                    <li class="nav-item"><a class="nav-link text-slate-300" href="#portals">Department Portals</a></li>
+                </ul>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('customer.login') }}" class="btn btn-warning text-dark rounded-pill px-3 fw-semibold">
+                        <i class="bi bi-people-fill me-1"></i> Customer Portal
+                    </a>
+                    <a href="{{ url_for('auth.login_owner') }}" class="btn btn-primary rounded-pill px-3 fw-semibold">
+                        <i class="bi bi-shield-lock-fill me-1"></i> Owner
+                    </a>
+                    <a href="{{ url_for('auth.login_manager') }}" class="btn btn-outline-light rounded-pill px-3">
+                        <i class="bi bi-diagram-3-fill me-1"></i> Manager
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="py-5 my-auto position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.85) 100%), url('{{ url_for('static', filename='images/factory/hero_garment_factory.jpg') }}') center/cover no-repeat;">
+        <div class="container py-5">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <div class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 rounded-pill mb-3 fw-bold">
+                        <i class="bi bi-cpu-fill me-2"></i>NEXT-GEN INDUSTRIAL APPAREL ERP v2.6
+                    </div>
+                    <h1 class="display-4 fw-extrabold text-white mb-3" style="line-height: 1.15;">
+                        AI-Based Garment Production Planning & Tracking System
+                    </h1>
+                    <p class="lead text-slate-300 mb-4" style="max-width: 620px;">
+                        Streamline garment manufacturing with AI fabric predictions, workforce estimation, digital twin floor monitoring, department-scoped portals, quality defect reporting, and QR customer tracking.
+                    </p>
+
+                    <!-- Quick QR Tracker Form -->
+                    <div class="card glass-card p-3 border mb-4" style="max-width: 540px;">
+                        <form action="{{ url_for('main.track_search') }}" method="POST" class="d-flex gap-2">
+                            <input type="text" name="order_id" class="form-control form-control-lg border bg-light" placeholder="Scan QR Code or enter Tracking ID e.g. TRK-1001" required>
+                            <button type="submit" class="btn btn-primary btn-lg px-4 fw-bold">Track</button>
+                        </form>
+                    </div>
+
+                    <!-- Factory Statistics -->
+                    <div class="row text-center g-3 p-3 rounded-4 bg-slate-800 border border-slate-700" style="max-width:580px;">
+                        <div class="col-3">
+                            <h4 class="fw-bold text-primary mb-0">{{ active_orders_count }}</h4>
+                            <small class="text-slate-400">Active Orders</small>
+                        </div>
+                        <div class="col-3">
+                            <h4 class="fw-bold text-success mb-0">{{ completed_orders_count }}</h4>
+                            <small class="text-slate-400">Completed</small>
+                        </div>
+                        <div class="col-3">
+                            <h4 class="fw-bold text-info mb-0">{{ workers_count }}</h4>
+                            <small class="text-slate-400">Floor Workers</small>
+                        </div>
+                        <div class="col-3">
+                            <h4 class="fw-bold text-warning mb-0">{{ machines_count }}</h4>
+                            <small class="text-slate-400">Machines</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <!-- Google Fonts for Inter -->
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                    
+                    <style>
+                        .premium-login-panel {
+                            background: rgba(17, 24, 39, 0.88) !important;
+                            backdrop-filter: blur(12px);
+                            -webkit-backdrop-filter: blur(12px);
+                            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+                            border-radius: 1.25rem !important;
+                            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+                            padding: 2rem !important;
+                        }
+
+                        .portal-card {
+                            background: rgba(30, 41, 59, 0.75) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                            text-decoration: none !important;
+                            color: #f8fafc !important;
+                            border-radius: 0.75rem !important;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 0.75rem 1rem !important;
+                            margin-bottom: 0.75rem;
+                            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+                        }
+
+                        .portal-card:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+                            background: rgba(30, 41, 59, 0.95) !important;
+                        }
+
+                        /* Color accents and hover transitions */
+                        .portal-owner {
+                            border-left: 4px solid #2563eb !important; /* Royal Blue */
+                        }
+                        .portal-owner:hover {
+                            border-left-width: 6px !important;
+                            border-color: #1d4ed8 !important;
+                        }
+                        .portal-owner i.main-icon, .portal-owner i.arrow-icon {
+                            color: #2563eb !important;
+                            transition: transform 0.2s;
+                        }
+                        .portal-owner:hover i.arrow-icon {
+                            transform: translateX(4px);
+                        }
+
+                        .portal-manager {
+                            border-left: 4px solid #4f46e5 !important; /* Deep Indigo */
+                        }
+                        .portal-manager:hover {
+                            border-left-width: 6px !important;
+                            border-color: #4338ca !important;
+                        }
+                        .portal-manager i.main-icon, .portal-manager i.arrow-icon {
+                            color: #4f46e5 !important;
+                            transition: transform 0.2s;
+                        }
+                        .portal-manager:hover i.arrow-icon {
+                            transform: translateX(4px);
+                        }
+
+                        .portal-cutting {
+                            border-left: 4px solid #0891b2 !important; /* Cyan / Teal */
+                        }
+                        .portal-cutting:hover {
+                            border-left-width: 6px !important;
+                            border-color: #0e7490 !important;
+                        }
+                        .portal-cutting i.main-icon, .portal-cutting i.arrow-icon {
+                            color: #0891b2 !important;
+                            transition: transform 0.2s;
+                        }
+                        .portal-cutting:hover i.arrow-icon {
+                            transform: translateX(4px);
+                        }
+
+                        .portal-stitching {
+                            border-left: 4px solid #3b82f6 !important; /* Blue */
+                        }
+                        .portal-stitching:hover {
+                            border-left-width: 6px !important;
+                            border-color: #2563eb !important;
+                        }
+                        .portal-stitching i.main-icon, .portal-stitching i.arrow-icon {
+                            color: #3b82f6 !important;
+                            transition: transform 0.2s;
+                        }
+                        .portal-stitching:hover i.arrow-icon {
+                            transform: translateX(4px);
+                        }
+
+                        .portal-qa {
+                            border-left: 4px solid #d97706 !important; /* Warm Amber */
+                        }
+                        .portal-qa:hover {
+                            border-left-width: 6px !important;
+                            border-color: #b45309 !important;
+                        }
+                        .portal-qa i.main-icon, .portal-qa i.arrow-icon {
+                            color: #d97706 !important;
+                            transition: transform 0.2s;
+                        }
+                        .portal-qa:hover i.arrow-icon {
+                            transform: translateX(4px);
+                        }
+
+                        .portal-packing {
+                            border-left: 4px solid #10b981 !important; /* Green / Teal */
+                        }
+                        .portal-packing:hover {
+                            border-left-width: 6px !important;
+                            border-color: #059669 !important;
+                        }
+                        .portal-packing i.main-icon, .portal-packing i.arrow-icon {
+                            color: #10b981 !important;
+                            transition: transform 0.2s;
+                        }
+                        .portal-packing:hover i.arrow-icon {
+                            transform: translateX(4px);
+                        }
+
+                        .portal-customer {
+                            border-left: 4px solid #7c3aed !important; /* Violet / Purple */
+                        }
+                        .portal-customer:hover {
+                            border-left-width: 6px !important;
+                            border-color: #6d28d9 !important;
+                        }
+                        .portal-customer i.main-icon, .portal-customer i.arrow-icon {
+                            color: #7c3aed !important;
+                            transition: transform 0.2s;
+                        }
+                        .portal-customer:hover i.arrow-icon {
+                            transform: translateX(4px);
+                        }
+                    </style>
+
+                    <!-- Department Logins Card Grid -->
+                    <div id="portals" class="card premium-login-panel text-slate-800 border-0 shadow-2xl">
+                        <h4 class="fw-bold mb-4 text-slate-900 brand-font d-flex align-items-center gap-2" style="font-size: 1.35rem; letter-spacing: -0.5px;">
+                            <i class="bi bi-door-open-fill text-primary"></i> Department Login Portals
+                        </h4>
+
+                        <div class="vstack gap-1">
+                            <!-- Owner Executive Portal -->
+                            <a href="{{ url_for('auth.login_owner') }}" class="portal-card portal-owner">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-shield-lock-fill fs-5 main-icon"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-slate-900" style="font-size: 0.9rem; font-weight: 600;">Owner Executive Portal</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Full ERP access & analytics</small>
+                                    </div>
+                                </div>
+                                <i class="bi bi-arrow-right fs-6 arrow-icon"></i>
+                            </a>
+
+                            <!-- Production Manager -->
+                            <a href="{{ url_for('auth.login_manager') }}" class="portal-card portal-manager">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-diagram-3-fill fs-5 main-icon"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-slate-900" style="font-size: 0.9rem; font-weight: 600;">Production Manager</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Floor view & line assignments</small>
+                                    </div>
+                                </div>
+                                <i class="bi bi-arrow-right fs-6 arrow-icon"></i>
+                            </a>
+
+                            <!-- Cutting Department -->
+                            <a href="{{ url_for('auth.login_cutting') }}" class="portal-card portal-cutting">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-scissors fs-5 main-icon"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-slate-900" style="font-size: 0.9rem; font-weight: 600;">Cutting Department</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Fabric rolls & pattern cutting</small>
+                                    </div>
+                                </div>
+                                <i class="bi bi-arrow-right fs-6 arrow-icon"></i>
+                            </a>
+
+                            <!-- Stitching Line -->
+                            <a href="{{ url_for('auth.login_stitching') }}" class="portal-card portal-stitching">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-thread fs-5 main-icon"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-slate-900" style="font-size: 0.9rem; font-weight: 600;">Stitching Line</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Assembly & target progress</small>
+                                    </div>
+                                </div>
+                                <i class="bi bi-arrow-right fs-6 arrow-icon"></i>
+                            </a>
+
+                            <!-- Quality Check (QA) -->
+                            <a href="{{ url_for('auth.login_quality') }}" class="portal-card portal-qa">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-patch-check-fill fs-5 main-icon"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-slate-900" style="font-size: 0.9rem; font-weight: 600;">Quality Check (QA)</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Inspections & defect reporting</small>
+                                    </div>
+                                </div>
+                                <i class="bi bi-arrow-right fs-6 arrow-icon"></i>
+                            </a>
+
+                            <!-- Packing & Dispatch -->
+                            <a href="{{ url_for('auth.login_packing') }}" class="portal-card portal-packing">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-box-seam-fill fs-5 main-icon"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-slate-900" style="font-size: 0.9rem; font-weight: 600;">Packing & Dispatch</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Poly-wrapping & shipment release</small>
+                                    </div>
+                                </div>
+                                <i class="bi bi-arrow-right fs-6 arrow-icon"></i>
+                            </a>
+
+                            <!-- Customer Support Portal -->
+                            <a href="{{ url_for('customer.login') }}" class="portal-card portal-customer">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-people-fill fs-5 main-icon"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-slate-900" style="font-size: 0.9rem; font-weight: 600;">Customer Support Portal</strong>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Track orders, invoices & chat support</small>
+                                    </div>
+                                </div>
+                                <i class="bi bi-arrow-right fs-6 arrow-icon"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-4 bg-slate-900 border-top border-slate-800 text-center text-slate-400 small">
+        <div class="container">
+            <p class="mb-0">© 2026 FAB FORA INTERNATIONAL PVT. LTD.</p>
+            <small class="d-block mt-1 text-slate-500">AI-Based Garment Production & Planning Software. All Rights Reserved.</small>
+        </div>
+    </footer>
+</div>
+{% endblock %}

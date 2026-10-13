@@ -1,0 +1,645 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Analytics – StitchTech ERP{% endblock %}
+{% block header_title %}Financial Analytics{% endblock %}
+
+{% block content %}
+<!-- =====================================================================
+     FINANCIAL ANALYTICS – OWNER ONLY
+     Revenue, Cost, Profit & Loss Analysis
+===================================================================== -->
+
+{# ---- hero banner ---- #}
+<div class="glass-card p-4 mb-4 overflow-hidden position-relative text-white"
+     style="background: linear-gradient(135deg, rgba(15,23,42,0.92), rgba(5,150,105,0.85));">
+  <div class="position-relative" style="z-index:2;">
+    <h4 class="fw-bold mb-1 brand-font">
+      <i class="bi bi-graph-up-arrow me-2 text-success"></i>Financial Analytics
+    </h4>
+    <p class="text-white-50 small mb-0">Revenue, Cost, Profit &amp; Loss Analysis &mdash; Confidential Owner Report</p>
+  </div>
+</div>
+
+{# ---- filter bar ---- #}
+<div class="glass-card p-3 mb-4">
+  <form method="GET" action="{{ url_for('owner.financial_analytics') }}" class="row g-2 align-items-end" id="fa-filter-form">
+
+    {# View toggle #}
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1">View</label>
+      <div class="btn-group" role="group">
+        <a href="{{ url_for('owner.financial_analytics', view='yearly', year=sel_year, month=sel_month) }}"
+           class="btn btn-sm {% if view_type=='yearly' %}btn-success{% else %}btn-outline-secondary{% endif %}">
+          <i class="bi bi-calendar3 me-1"></i>Yearly
+        </a>
+        <a href="{{ url_for('owner.financial_analytics', view='monthly', year=sel_year, month=sel_month) }}"
+           class="btn btn-sm {% if view_type=='monthly' %}btn-success{% else %}btn-outline-secondary{% endif %}">
+          <i class="bi bi-calendar-week me-1"></i>Monthly
+        </a>
+        <a href="{{ url_for('owner.financial_analytics', view='last_2_years', year=sel_year, month=sel_month) }}"
+           class="btn btn-sm {% if view_type=='last_2_years' %}btn-success{% else %}btn-outline-secondary{% endif %}">
+          <i class="bi bi-clock-history me-1"></i>Last 2 Years
+        </a>
+      </div>
+    </div>
+
+    {# Year dropdown (hidden in last_2_years view since it spans 2 years) #}
+    {% if view_type != 'last_2_years' %}
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" for="fa-year">Year</label>
+      <select name="year" id="fa-year" class="form-select form-select-sm"
+              onchange="this.form.submit()" style="min-width:100px;">
+        {% for y in available_years %}
+          <option value="{{ y }}" {% if y == sel_year %}selected{% endif %}>
+            {{ y }}{% if y == current_year %} (Current){% elif y == current_year - 1 %} (Previous){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+      <input type="hidden" name="view" value="{{ view_type }}">
+    </div>
+    {% else %}
+      <input type="hidden" name="year" value="{{ sel_year }}">
+      <input type="hidden" name="view" value="last_2_years">
+    {% endif %}
+
+    {# Month dropdown (only visible in monthly view) #}
+    {% if view_type == 'monthly' %}
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1" for="fa-month">Month</label>
+      <select name="month" id="fa-month" class="form-select form-select-sm"
+              onchange="this.form.submit()" style="min-width:130px;">
+        {% for idx in range(1, 13) %}
+          <option value="{{ idx }}" {% if idx == sel_month %}selected{% endif %}>
+            {{ month_names_full[idx-1] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    {% else %}
+      <input type="hidden" name="month" value="{{ sel_month }}">
+    {% endif %}
+
+    <div class="col-auto">
+      <button type="submit" class="btn btn-sm btn-success">
+        <i class="bi bi-funnel-fill me-1"></i>Apply
+      </button>
+    </div>
+
+    {# Period display label #}
+    <div class="col-auto ms-auto">
+      <span class="badge bg-success-subtle text-success px-3 py-2 fs-6">
+        {% if view_type == 'monthly' %}
+          {{ month_names_full[sel_month - 1] }} {{ sel_year }}
+        {% elif view_type == 'last_2_years' %}
+          Last 2 Years (Jan {{ current_year - 1 }} &ndash; {{ month_names_full[current_month - 1] }} {{ current_year }})
+        {% else %}
+          {% if sel_year == current_year %}
+            Jan &ndash; {{ month_names_full[current_month - 1] }} {{ current_year }} (YTD)
+          {% else %}
+            Full Year {{ sel_year }} (Jan &ndash; Dec)
+          {% endif %}
+        {% endif %}
+      </span>
+    </div>
+  </form>
+</div>
+
+{# ---- KPI summary cards ---- #}
+<div class="row g-3 mb-4">
+  {# Total Revenue #}
+  <div class="col-sm-6 col-lg">
+    <div class="glass-card p-3 h-100 text-center border-start border-4 border-primary">
+      <div class="text-muted small mb-1"><i class="bi bi-cash-stack me-1 text-primary"></i>Total Revenue</div>
+      <div class="fw-bold fs-5 text-primary" id="fa-card-revenue">
+        {% if data.total_revenue > 0 %}
+          {{ data.total_revenue | format_inr }}
+        {% else %}
+          <span class="text-muted fs-6">₹0.00</span>
+        {% endif %}
+      </div>
+      <div class="text-muted" style="font-size:0.7rem;">Billed invoice total</div>
+    </div>
+  </div>
+
+  {# Total Production Cost #}
+  <div class="col-sm-6 col-lg">
+    <div class="glass-card p-3 h-100 text-center border-start border-4 border-warning">
+      <div class="text-muted small mb-1"><i class="bi bi-tools me-1 text-warning"></i>Production Cost</div>
+      <div class="fw-bold fs-5 text-warning" id="fa-card-cost">
+        {% if data.total_cost > 0 %}
+          {{ data.total_cost | format_inr }}
+        {% else %}
+          <span class="text-muted fs-6">₹0.00</span>
+        {% endif %}
+      </div>
+      <div class="text-muted" style="font-size:0.7rem;">Fabric + Labour + Machine + Other</div>
+    </div>
+  </div>
+
+  {# Net Profit #}
+  <div class="col-sm-6 col-lg">
+    <div class="glass-card p-3 h-100 text-center border-start border-4 border-success">
+      <div class="text-muted small mb-1"><i class="bi bi-trending-up me-1 text-success"></i>Net Profit</div>
+      <div class="fw-bold fs-5 text-success" id="fa-card-profit">
+        {% if data.net_profit > 0 %}
+          {{ data.net_profit | format_inr }}
+        {% else %}
+          <span class="text-muted fs-6">₹0.00</span>
+        {% endif %}
+      </div>
+      <div class="text-muted" style="font-size:0.7rem;">Revenue &minus; Cost (when positive)</div>
+    </div>
+  </div>
+
+  {# Total Loss #}
+  <div class="col-sm-6 col-lg">
+    <div class="glass-card p-3 h-100 text-center border-start border-4 border-danger">
+      <div class="text-muted small mb-1"><i class="bi bi-trending-down me-1 text-danger"></i>Total Loss</div>
+      <div class="fw-bold fs-5 text-danger" id="fa-card-loss">
+        {% if data.net_loss > 0 %}
+          {{ data.net_loss | format_inr }}
+        {% else %}
+          <span class="text-muted fs-6">₹0.00</span>
+        {% endif %}
+      </div>
+      <div class="text-muted" style="font-size:0.7rem;">Cost &minus; Revenue (when negative)</div>
+    </div>
+  </div>
+
+  {# Profit Margin % #}
+  <div class="col-sm-6 col-lg">
+    <div class="glass-card p-3 h-100 text-center border-start border-4 border-info">
+      <div class="text-muted small mb-1"><i class="bi bi-percent me-1 text-info"></i>Profit Margin</div>
+      <div class="fw-bold fs-5 text-info" id="fa-card-margin">{{ data.profit_margin }}%</div>
+      <div class="text-muted" style="font-size:0.7rem;">(Profit / Revenue) × 100</div>
+    </div>
+  </div>
+</div>
+
+{# ---- Row 1: Bar Chart + Doughnut Chart ---- #}
+<div class="row g-4 mb-4">
+  {# Bar Chart: Revenue vs Production Cost #}
+  <div class="col-lg-8">
+    <div class="glass-card p-4 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0">
+          <i class="bi bi-bar-chart-fill me-2 text-primary"></i>Revenue vs Production Cost
+        </h5>
+        <span class="badge bg-primary-subtle text-primary">
+          {% if view_type == 'monthly' %}
+            {{ month_names_full[sel_month-1] }} {{ sel_year }}
+          {% elif view_type == 'last_2_years' %}
+            Last 2 Years (Jan {{ current_year - 1 }} &ndash; {{ month_names_full[current_month - 1] }} {{ current_year }})
+          {% elif sel_year == current_year %}
+            {{ sel_year }} (Jan &ndash; {{ month_names_full[current_month - 1] }})
+          {% else %}
+            {{ sel_year }} (Jan &ndash; Dec)
+          {% endif %}
+        </span>
+      </div>
+      {% if data.total_revenue == 0 and data.total_cost == 0 %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-bar-chart display-4 opacity-25"></i>
+          <p class="mt-3 small">No revenue or cost data available for the selected period.</p>
+        </div>
+      {% else %}
+        <div style="height:320px; position:relative;">
+          <canvas id="fa-bar-chart"></canvas>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Doughnut Chart: Cost Breakdown #}
+  <div class="col-lg-4">
+    <div class="glass-card p-4 h-100">
+      <h5 class="fw-bold mb-3">
+        <i class="bi bi-pie-chart-fill me-2 text-warning"></i>Production Cost Breakdown
+      </h5>
+      {% if data.total_fabric == 0 and data.total_labour == 0 and data.total_machine == 0 and data.total_other == 0 %}
+        <div class="text-center text-muted py-4 mt-3">
+          <i class="bi bi-pie-chart display-4 opacity-25"></i>
+          <p class="mt-3 small">No production cost data available for this period.</p>
+          <p class="small text-muted">Enter production costs below to see the breakdown.</p>
+        </div>
+      {% else %}
+        <div class="d-flex align-items-center justify-content-center" style="height:240px;">
+          <canvas id="fa-doughnut-chart"></canvas>
+        </div>
+        <div class="mt-3 small">
+          <div class="d-flex justify-content-between border-bottom border-secondary pb-1 mb-1">
+            <span><span class="badge" style="background:#38bdf8;">&nbsp;</span> Fabric</span>
+            <span>{{ data.total_fabric | format_inr }}</span>
+          </div>
+          <div class="d-flex justify-content-between border-bottom border-secondary pb-1 mb-1">
+            <span><span class="badge" style="background:#818cf8;">&nbsp;</span> Labour</span>
+            <span>{{ data.total_labour | format_inr }}</span>
+          </div>
+          <div class="d-flex justify-content-between border-bottom border-secondary pb-1 mb-1">
+            <span><span class="badge" style="background:#fbbf24;">&nbsp;</span> Machine</span>
+            <span>{{ data.total_machine | format_inr }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span><span class="badge" style="background:#34d399;">&nbsp;</span> Other</span>
+            <span>{{ data.total_other | format_inr }}</span>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ---- Row 2: Line Graph (Profit/Loss Trend) ---- #}
+<div class="glass-card p-4 mb-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="fw-bold mb-0">
+      <i class="bi bi-graph-up me-2 text-success"></i>Profit / Loss Trend
+    </h5>
+    <span class="badge bg-success-subtle text-success">
+      {% if view_type == 'monthly' %}
+        {{ month_names_full[sel_month-1] }} {{ sel_year }}
+      {% elif view_type == 'last_2_years' %}
+        Last 2 Years Trend (Jan {{ current_year - 1 }} &ndash; {{ month_names_full[current_month - 1] }} {{ current_year }})
+      {% elif sel_year == current_year %}
+        {{ sel_year }} (Jan &ndash; {{ month_names_full[current_month - 1] }})
+      {% else %}
+        {{ sel_year }} (Jan &ndash; Dec)
+      {% endif %}
+    </span>
+  </div>
+  {% if data.total_revenue == 0 and data.total_cost == 0 %}
+    <div class="text-center text-muted py-4">
+      <i class="bi bi-graph-up display-4 opacity-25"></i>
+      <p class="mt-3 small">No data available for the selected period. Profit/Loss cannot be evaluated until production costs are recorded.</p>
+    </div>
+  {% else %}
+    <div style="height:280px; position:relative;">
+      <canvas id="fa-line-chart"></canvas>
+    </div>
+  {% endif %}
+</div>
+
+{# ---- Financial Summary Table ---- #}
+<div class="glass-card p-4 mb-4">
+  <h5 class="fw-bold mb-3">
+    <i class="bi bi-table me-2 text-info"></i>
+    {% if view_type == 'monthly' %}
+      Order-wise Financial Summary
+    {% elif view_type == 'last_2_years' %}
+      Monthly Financial Summary &ndash; Last 2 Years (Jan {{ current_year - 1 }} to {{ month_names_full[current_month - 1] }} {{ current_year }})
+    {% else %}
+      Month-wise Financial Summary &ndash; {{ sel_year }}
+    {% endif %}
+  </h5>
+  {% if data.summary_rows %}
+    <div class="table-responsive">
+      <table class="table table-dark table-hover table-sm align-middle" id="fa-summary-table">
+        <thead>
+          <tr>
+            <th>{{ 'Order / Invoice' if view_type == 'monthly' else 'Month' }}</th>
+            <th class="text-end">Revenue</th>
+            <th class="text-end">Production Cost</th>
+            <th class="text-end text-success">Profit</th>
+            <th class="text-end text-danger">Loss</th>
+            <th class="text-end text-info">Margin %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data.summary_rows %}
+          <tr {% if row.revenue == 0 and row.cost == 0 %}class="text-muted opacity-50"{% endif %}>
+            <td class="fw-semibold">{{ row.label }}</td>
+            <td class="text-end">{{ row.revenue | format_inr }}</td>
+            <td class="text-end">{{ row.cost | format_inr }}</td>
+            <td class="text-end text-success">
+              {% if row.profit > 0 %}{{ row.profit | format_inr }}{% else %}&mdash;{% endif %}
+            </td>
+            <td class="text-end text-danger">
+              {% if row.loss > 0 %}{{ row.loss | format_inr }}{% else %}&mdash;{% endif %}
+            </td>
+            <td class="text-end text-info">{{ row.margin }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-secondary fw-bold">
+          <tr>
+            <td>TOTAL</td>
+            <td class="text-end">{{ data.total_revenue | format_inr }}</td>
+            <td class="text-end">{{ data.total_cost | format_inr }}</td>
+            <td class="text-end text-success">
+              {% if data.net_profit > 0 %}{{ data.net_profit | format_inr }}{% else %}&mdash;{% endif %}
+            </td>
+            <td class="text-end text-danger">
+              {% if data.net_loss > 0 %}{{ data.net_loss | format_inr }}{% else %}&mdash;{% endif %}
+            </td>
+            <td class="text-end text-info">{{ data.profit_margin }}%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center text-muted py-4">
+      <i class="bi bi-table display-4 opacity-25"></i>
+      <p class="mt-3 small">No invoice data found for the selected period.</p>
+    </div>
+  {% endif %}
+</div>
+
+{# ---- Production Cost Entry (Owner only) ---- #}
+<div class="glass-card p-4 mb-4">
+  <h5 class="fw-bold mb-1">
+    <i class="bi bi-pencil-square me-2 text-warning"></i>Enter / Update Production Costs
+  </h5>
+  <p class="small text-muted mb-3">
+    Add or update production cost breakdown for each invoiced order. These costs are used in all financial calculations above.
+  </p>
+
+  {% if orders_for_cost %}
+    {% for order, invoice, pc in orders_for_cost %}
+    <div class="glass-card p-3 mb-3" style="background:rgba(255,255,255,0.03);">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div>
+          <span class="fw-semibold">Order #{{ order.id }}</span>
+          <span class="text-muted mx-2">&mdash;</span>
+          <span class="badge bg-secondary">{{ order.garment_type }}</span>
+          <span class="text-muted small mx-2">{{ invoice.invoice_number }}</span>
+        </div>
+        <div>
+          {% if pc %}
+            <span class="badge bg-success-subtle text-success">Cost Recorded: {{ pc.total_cost | format_inr }}</span>
+          {% else %}
+            <span class="badge bg-warning-subtle text-warning">No Cost Recorded</span>
+          {% endif %}
+        </div>
+      </div>
+      <form method="POST"
+            action="{{ url_for('owner.financial_save_cost', order_id=order.id) }}"
+            class="row g-2 align-items-end">
+        <input type="hidden" name="view" value="{{ view_type }}">
+        <input type="hidden" name="year" value="{{ sel_year }}">
+        <input type="hidden" name="month" value="{{ sel_month }}">
+        <div class="col-6 col-sm-3">
+          <label class="form-label small text-muted mb-1">Fabric Cost (₹)</label>
+          <input type="number" step="0.01" min="0" name="fabric_cost"
+                 class="form-control form-control-sm"
+                 value="{{ pc.fabric_cost if pc else '' }}" placeholder="0.00">
+        </div>
+        <div class="col-6 col-sm-3">
+          <label class="form-label small text-muted mb-1">Labour Cost (₹)</label>
+          <input type="number" step="0.01" min="0" name="labour_cost"
+                 class="form-control form-control-sm"
+                 value="{{ pc.labour_cost if pc else '' }}" placeholder="0.00">
+        </div>
+        <div class="col-6 col-sm-3">
+          <label class="form-label small text-muted mb-1">Machine Cost (₹)</label>
+          <input type="number" step="0.01" min="0" name="machine_cost"
+                 class="form-control form-control-sm"
+                 value="{{ pc.machine_cost if pc else '' }}" placeholder="0.00">
+        </div>
+        <div class="col-6 col-sm-3">
+          <label class="form-label small text-muted mb-1">Other Cost (₹)</label>
+          <input type="number" step="0.01" min="0" name="other_cost"
+                 class="form-control form-control-sm"
+                 value="{{ pc.other_cost if pc else '' }}" placeholder="0.00">
+        </div>
+        <div class="col-12 col-sm-auto">
+          <button type="submit" class="btn btn-sm btn-warning w-100">
+            <i class="bi bi-save me-1"></i>Save
+          </button>
+        </div>
+      </form>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="text-center text-muted py-3">
+      <i class="bi bi-receipt display-4 opacity-25"></i>
+      <p class="mt-3 small">No invoiced orders found. Create invoices in Billing &amp; Invoices first.</p>
+    </div>
+  {% endif %}
+</div>
+
+{# ---- Academic Prototype Demonstration Notice ---- #}
+<div class="text-center text-muted small py-2 mb-3 opacity-75">
+  <i class="bi bi-info-circle me-1"></i>
+  Historical values shown for prototype demonstration purposes.
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+// ===================================================================
+// Financial Analytics Charts — unique IDs to avoid conflicts
+// Uses globally-loaded Chart.js from base.html
+// ===================================================================
+(function () {
+  "use strict";
+
+  // Data passed from server (server is authoritative)
+  const barLabels   = {{ data.bar_labels | tojson }};
+  const barRevenue  = {{ data.bar_revenue | tojson }};
+  const barCost     = {{ data.bar_cost | tojson }};
+  const lineLabels  = {{ data.line_labels | tojson }};
+  const lineValues  = {{ data.line_values | tojson }};
+  const doughnutData = [
+    {{ data.total_fabric }},
+    {{ data.total_labour }},
+    {{ data.total_machine }},
+    {{ data.total_other }}
+  ];
+  const totalCost = {{ data.total_cost }};
+
+  // ----------------------------------------------------------------
+  // Shared chart defaults for dark theme
+  // ----------------------------------------------------------------
+  const gridColor   = 'rgba(255,255,255,0.08)';
+  const tickColor   = '#94a3b8';
+  const legendColor = '#cbd5e1';
+
+  // ----------------------------------------------------------------
+  // 1. BAR CHART — Revenue vs Production Cost
+  // ----------------------------------------------------------------
+  const barCanvas = document.getElementById('fa-bar-chart');
+  if (barCanvas) {
+    new Chart(barCanvas, {
+      type: 'bar',
+      data: {
+        labels: barLabels,
+        datasets: [
+          {
+            label: 'Revenue (₹)',
+            data: barRevenue,
+            backgroundColor: 'rgba(56, 189, 248, 0.75)',
+            borderColor: '#38bdf8',
+            borderWidth: 1,
+            borderRadius: 6,
+          },
+          {
+            label: 'Production Cost (₹)',
+            data: barCost,
+            backgroundColor: 'rgba(251, 191, 36, 0.75)',
+            borderColor: '#fbbf24',
+            borderWidth: 1,
+            borderRadius: 6,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { color: legendColor, font: { size: 12 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const val = ctx.parsed.y || 0;
+                return ' ₹' + val.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: { color: tickColor }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              callback: function(val) {
+                if (val >= 100000) return '₹' + (val/100000).toFixed(1) + 'L';
+                if (val >= 1000) return '₹' + (val/1000).toFixed(1) + 'K';
+                return '₹' + val;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ----------------------------------------------------------------
+  // 2. LINE CHART — Profit / Loss Trend
+  // ----------------------------------------------------------------
+  const lineCanvas = document.getElementById('fa-line-chart');
+  if (lineCanvas) {
+    const linePointColors = lineValues.map(v => v >= 0 ? '#34d399' : '#f87171');
+    new Chart(lineCanvas, {
+      type: 'line',
+      data: {
+        labels: lineLabels,
+        datasets: [{
+          label: 'Profit / Loss (₹)',
+          data: lineValues,
+          borderColor: '#34d399',
+          backgroundColor: function(ctx) {
+            const chart = ctx.chart;
+            const { ctx: c, chartArea } = chart;
+            if (!chartArea) return 'transparent';
+            const grad = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            grad.addColorStop(0, 'rgba(52,211,153,0.25)');
+            grad.addColorStop(1, 'rgba(248,113,113,0.15)');
+            return grad;
+          },
+          tension: 0.4,
+          fill: true,
+          borderWidth: 2.5,
+          pointRadius: 5,
+          pointBackgroundColor: linePointColors,
+          pointBorderColor: linePointColors,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            labels: { color: legendColor }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const val = ctx.parsed.y || 0;
+                const label = val >= 0 ? 'Profit' : 'Loss';
+                return ' ' + label + ': ₹' + Math.abs(val).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: { color: tickColor }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              callback: function(val) {
+                const prefix = val < 0 ? '-₹' : '₹';
+                const abs = Math.abs(val);
+                if (abs >= 100000) return prefix + (abs/100000).toFixed(1) + 'L';
+                if (abs >= 1000) return prefix + (abs/1000).toFixed(1) + 'K';
+                return prefix + abs;
+              }
+            },
+            // Draw zero-line prominently
+            afterDataLimits: function(scale) {
+              if (scale.max < 0) scale.max = 0;
+              if (scale.min > 0) scale.min = 0;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ----------------------------------------------------------------
+  // 3. DOUGHNUT CHART — Production Cost Breakdown
+  // ----------------------------------------------------------------
+  const doughnutCanvas = document.getElementById('fa-doughnut-chart');
+  if (doughnutCanvas && totalCost > 0) {
+    new Chart(doughnutCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Fabric', 'Labour', 'Machine', 'Other'],
+        datasets: [{
+          data: doughnutData,
+          backgroundColor: ['#38bdf8', '#818cf8', '#fbbf24', '#34d399'],
+          borderColor: ['#0f172a'],
+          borderWidth: 2,
+          hoverOffset: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const val = ctx.parsed || 0;
+                const pct = totalCost > 0 ? ((val / totalCost) * 100).toFixed(1) : '0.0';
+                return ' ₹' + val.toLocaleString('en-IN', { minimumFractionDigits: 2 }) + ' (' + pct + '%)';
+              }
+            }
+          }
+        },
+        cutout: '65%',
+      }
+    });
+  }
+
+})();
+</script>
+{% endblock %}

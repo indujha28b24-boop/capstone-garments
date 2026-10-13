@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - StitchTech ERP{% endblock %}
+{% block header_title %}User Directory & Role Management{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Floor Staff & Manager Accounts</h4>
+        <p class="text-muted small mb-0">Create and assign system access roles for managers and factory floor workers.</p>
+    </div>
+
+    <button class="btn btn-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <i class="bi bi-person-plus-fill me-1"></i> Register New User
+    </button>
+</div>
+
+<!-- Department Division Image Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card glass-card border-0 overflow-hidden shadow-sm h-100 text-center">
+            <img src="{{ url_for('static', filename='images/workers/dept_cutting.jpg') }}" class="card-img-top" style="height:100px; object-fit:cover;" alt="Cutting Department">
+            <div class="card-body p-2">
+                <h6 class="fw-bold mb-0 text-slate-800">Cutting Division</h6>
+                <small class="text-muted" style="font-size:0.75rem;">1 Operator Assigned</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card glass-card border-0 overflow-hidden shadow-sm h-100 text-center">
+            <img src="{{ url_for('static', filename='images/workers/worker_sewing_bg.jpg') }}" class="card-img-top" style="height:100px; object-fit:cover;" alt="Stitching Department">
+            <div class="card-body p-2">
+                <h6 class="fw-bold mb-0 text-slate-800">Stitching Line</h6>
+                <small class="text-muted" style="font-size:0.75rem;">1 Operator Assigned</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card glass-card border-0 overflow-hidden shadow-sm h-100 text-center">
+            <img src="{{ url_for('static', filename='images/workers/dept_quality.jpg') }}" class="card-img-top" style="height:100px; object-fit:cover;" alt="Quality Check">
+            <div class="card-body p-2">
+                <h6 class="fw-bold mb-0 text-slate-800">Quality Inspection</h6>
+                <small class="text-muted" style="font-size:0.75rem;">1 Inspector Assigned</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card glass-card border-0 overflow-hidden shadow-sm h-100 text-center">
+            <img src="{{ url_for('static', filename='images/delivery/apparel_delivery.jpg') }}" class="card-img-top" style="height:100px; object-fit:cover;" alt="Packing & Dispatch">
+            <div class="card-body p-2">
+                <h6 class="fw-bold mb-0 text-slate-800">Packing & Dispatch</h6>
+                <small class="text-muted" style="font-size:0.75rem;">1 Inspector Assigned</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Production Managers Table -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3 me-2 text-indigo"></i>Production Managers</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Manager Name</th>
+                            <th>Department</th>
+                            <th>Contact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mgr in managers %}
+                        <tr>
+                            <td class="fw-bold"><i class="bi bi-person-badge text-primary me-2"></i>{{ mgr.name }}</td>
+                            <td><span class="badge bg-primary-subtle text-primary">{{ mgr.department }}</span></td>
+                            <td>{{ mgr.contact }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-muted">No managers registered yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workers Table -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-people me-2 text-success"></i>Factory Floor Workers</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Worker Name</th>
+                            <th>Department</th>
+                            <th>Skill</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for wrk in workers %}
+                        <tr>
+                            <td class="fw-bold">{{ wrk.name }}</td>
+                            <td><span class="badge bg-info-subtle text-info-emphasis">{{ wrk.department }}</span></td>
+                            <td class="small">{{ wrk.skill }}</td>
+                            <td>
+                                {% if wrk.status == 'Available' %}
+                                    <span class="badge bg-success">Available</span>
+                                {% elif wrk.status == 'Busy' %}
+                                    <span class="badge bg-warning text-dark">Busy</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">On Leave</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-muted">No workers registered.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add User -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Register New Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('owner.user_add') }}" method="POST">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Role</label>
+                        <select name="role" class="form-select" required>
+                            <option value="manager">Production Manager</option>
+                            <option value="worker" selected>Factory Floor Worker</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Full Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. John Doe" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="e.g. john_doe" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Department</label>
+                        <select name="department" class="form-select">
+                            <option value="Cutting">Cutting</option>
+                            <option value="Stitching" selected>Stitching</option>
+                            <option value="Quality Check">Quality Check</option>
+                            <option value="Packing">Packing</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Skill Specialization (For Worker)</label>
+                        <input type="text" name="skill" class="form-control" placeholder="e.g. High-Speed Sewing / Pattern Cutting">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Contact Phone</label>
+                        <input type="text" name="contact" class="form-control" placeholder="+1 555-0100" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Register User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

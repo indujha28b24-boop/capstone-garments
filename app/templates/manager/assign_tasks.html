@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Tasks - StitchTech ERP{% endblock %}
+{% block header_title %}Floor Task & Worker Assignments{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Worker Assignment Form Card -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-gear me-2 text-primary"></i>Reallocate Worker Line Status</h5>
+            <form action="{{ url_for('manager.assign_tasks') }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Select Worker</label>
+                    <select name="worker_id" class="form-select" required>
+                        {% for wrk in workers %}
+                        <option value="{{ wrk.id }}">{{ wrk.name }} ({{ wrk.department }} - {{ wrk.skill }}) [Currently {{ wrk.status }}]</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Target Production Order</label>
+                    <select name="order_id" class="form-select" required>
+                        {% for ord in orders %}
+                        <option value="{{ ord.id }}">Order #{{ ord.id }} - {{ ord.garment_type }} ({{ ord.quantity }} pcs, Stage: {{ ord.current_stage }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Set Operational Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="Busy">Busy (Assigned to Order Line)</option>
+                        <option value="Available">Available (Unassigned)</option>
+                        <option value="On Leave">On Leave</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-semibold">
+                    <i class="bi bi-check-circle-fill me-1"></i> Update Worker Allocation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Active Line Roster -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2 text-indigo"></i>Current Floor Roster</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Worker Name</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for wrk in workers %}
+                        <tr>
+                            <td class="fw-bold">{{ wrk.name }}</td>
+                            <td><span class="badge bg-primary-subtle text-primary">{{ wrk.department }}</span></td>
+                            <td>
+                                {% if wrk.status == 'Available' %}
+                                    <span class="badge bg-success">Available</span>
+                                {% elif wrk.status == 'Busy' %}
+                                    <span class="badge bg-warning text-dark">Busy</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">On Leave</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

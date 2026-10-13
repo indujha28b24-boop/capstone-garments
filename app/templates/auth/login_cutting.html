@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Cutting Department Login - StitchTech ERP{% endblock %}
+
+{% block non_auth_content %}
+<div class="auth-bg">
+    <div class="auth-card overflow-hidden p-0">
+        <div class="position-relative p-4 text-center text-white" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(13, 148, 136, 0.95)); border-bottom: 2px solid #0d9488;">
+            <div class="bg-white text-primary rounded-4 p-2 d-inline-block shadow mb-2" style="width: 50px; height: 50px;">
+                <i class="bi bi-scissors fs-3"></i>
+            </div>
+            <h4 class="fw-bold brand-font mb-1" style="font-size: 1.15rem; letter-spacing: -0.3px;">FAB FORA INTERNATIONAL PVT. LTD.</h4>
+            <p class="text-white-50 small mb-2" style="font-size: 0.72rem; font-weight: 500;">"AI-Based Garment Production & Planning Software"</p>
+            <span class="badge bg-light text-primary px-3 py-1.5 rounded-pill small fw-bold" style="font-size: 0.75rem;">Welcome to FAB FORA Enterprise Portal</span>
+        </div>
+        <div class="p-4">
+
+        <form action="{{ url_for('auth.login_cutting') }}" method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-semibold text-slate-700">Cutting Worker Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-person-badge text-primary"></i></span>
+                    <input type="text" name="username" class="form-control bg-light" placeholder="e.g. cutting_worker01" value="cutting_worker01" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold text-slate-700">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-key-fill text-primary"></i></span>
+                    <input type="password" name="password" id="cutPass" class="form-control bg-light" placeholder="••••••••" value="worker123" required>
+                    <button type="button" class="btn btn-light border toggle-password" data-target="cutPass">
+                        <i class="bi bi-eye-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember" checked>
+                    <label class="form-check-label small text-muted" for="remember">Remember session</label>
+                </div>
+                <small><a href="/" class="text-decoration-none text-primary fw-semibold">Back to Home</a></small>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-semibold shadow-sm mb-3">
+                Enter Cutting Station <i class="bi bi-arrow-right-short ms-1"></i>
+            </button>
+
+            <div class="alert alert-info border-0 small py-2 mb-0 text-center">
+                <strong>Demo Credentials:</strong> Username: <code>cutting_worker01</code> | Password: <code>worker123</code>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

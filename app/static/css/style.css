@@ -1,0 +1,1093 @@
+/* -------------------------------------------------------------
+ * STITCHTECH ERP - COMMERCIAL GARMENT MANUFACTURING STYLESHEET
+ * Premium Modern SaaS ERP Design System with Glassmorphism
+ * ------------------------------------------------------------- */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary: #0284c7;
+    --primary-dark: #0369a1;
+    --primary-light: rgba(2, 132, 199, 0.2);
+    --secondary: #0B1120;
+    --accent-teal: #0d9488;
+    --accent-indigo: #6366f1;
+    --bg-main: #0B1120;
+    --card-bg: #111827;
+    --border-color: #334155;
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --sidebar-width: 260px;
+    --glass-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: var(--bg-main);
+    --bs-body-color: var(--text-main);
+    --bs-secondary-bg: var(--card-bg);
+    --bs-tertiary-bg: #1F2937;
+    --bs-border-color: var(--border-color);
+    --bs-light: #1E293B;
+    --bs-light-rgb: 30, 41, 59;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-font {
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.02em;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.glass-card:hover {
+    box-shadow: 0 20px 30px -10px rgba(15, 23, 42, 0.12);
+}
+
+/* Metric Cards */
+.metric-card {
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card .icon-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.metric-value {
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Sidebar Navigation */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--secondary);
+    color: #fff;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 1040;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+}
+
+.sidebar-header {
+    padding: 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-nav {
+    padding: 1rem 0.75rem;
+    flex-grow: 1;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #94a3b8;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-link i {
+    font-size: 1.2rem;
+    margin-right: 0.85rem;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+    color: #ffffff;
+    background: rgba(2, 132, 199, 0.25);
+    border-left: 4px solid var(--primary);
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    background-color: var(--bg-main);
+    max-width: 100%;
+    overflow-y: auto;
+}
+
+/* Header Navbar */
+.top-header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Timelines for Garment Stages */
+.stage-timeline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin: 2rem 0;
+    padding: 0 1rem;
+}
+
+.stage-timeline::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    right: 40px;
+    height: 4px;
+    background: #e2e8f0;
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.stage-timeline-progress {
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    height: 4px;
+    background: var(--primary);
+    z-index: 2;
+    transform: translateY(-50%);
+    transition: width 0.4s ease;
+}
+
+.stage-step {
+    position: relative;
+    z-index: 3;
+    background: var(--card-bg);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.stage-step.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+}
+
+.stage-step.completed {
+    border-color: var(--success);
+    background: var(--success);
+    color: #fff;
+}
+
+.stage-label {
+    position: absolute;
+    top: 52px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Risk Badges */
+.badge-risk-low {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.badge-risk-medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.badge-risk-high {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    animation: pulseRisk 2s infinite;
+}
+
+@keyframes pulseRisk {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Digital Factory View */
+.factory-floor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.dept-card {
+    border-top: 4px solid var(--primary);
+}
+
+.running-dot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--success);
+    border-radius: 50%;
+    display: inline-block;
+    animation: blinkDot 1.5s infinite;
+}
+
+@keyframes blinkDot {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+/* Auth Login Pages */
+.auth-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, rgba(11,17,32,0.96) 0%, rgba(15,23,42,0.96) 100%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><path d="M0 0 L30 30 L60 0 M30 30 L30 60" fill="none" stroke="rgba(2,132,199,0.06)" stroke-width="1"/><circle cx="30" cy="30" r="3.5" fill="rgba(13,148,136,0.07)"/><path d="M15 15 H45 V45 H15 Z" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1"/><line x1="0" y1="30" x2="60" y2="30" stroke="rgba(2,132,199,0.03)" stroke-width="0.5"/></svg>') repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* Responsive Overrides */
+@media (max-width: 991px) {
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        bottom: 0;
+        transition: left 0.3s ease;
+    }
+    .sidebar.open {
+        left: 0;
+    }
+    .main-content {
+        padding: 1rem;
+    }
+}
+
+/* -------------------------------------------------------------
+ * DARK MODE OVERRIDES FOR EXISTING UTILITY CLASSES
+ * ------------------------------------------------------------- */
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-light {
+    background-color: #1e293b !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-bs-theme="dark"] .text-dark,
+[data-bs-theme="dark"] .text-black,
+[data-bs-theme="dark"] .text-slate-900,
+[data-bs-theme="dark"] .text-slate-800,
+[data-bs-theme="dark"] .text-slate-700,
+[data-bs-theme="dark"] .text-slate-600,
+[data-bs-theme="dark"] .text-slate-500,
+[data-bs-theme="dark"] .text-body {
+    color: var(--text-main) !important;
+}
+
+[data-bs-theme="dark"] .text-muted,
+[data-bs-theme="dark"] small.text-muted,
+[data-bs-theme="dark"] .text-muted.small {
+    color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .text-secondary {
+    color: #cbd5e1 !important;
+}
+
+[data-bs-theme="dark"] .border,
+[data-bs-theme="dark"] .border-top,
+[data-bs-theme="dark"] .border-bottom,
+[data-bs-theme="dark"] .border-start,
+[data-bs-theme="dark"] .border-end {
+    border-color: var(--border-color) !important;
+}
+
+/* Metric Cards */
+[data-bs-theme="dark"] .metric-value {
+    color: var(--text-main);
+}
+[data-bs-theme="dark"] .metric-label {
+    color: #94a3b8;
+}
+
+/* Modals */
+[data-bs-theme="dark"] .modal-content {
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+[data-bs-theme="dark"] .modal-header,
+[data-bs-theme="dark"] .modal-footer {
+    border-color: var(--border-color) !important;
+    background-color: rgba(15, 23, 42, 0.6) !important;
+}
+[data-bs-theme="dark"] .modal-title {
+    color: var(--text-main) !important;
+}
+[data-bs-theme="dark"] .modal-body {
+    color: #cbd5e1 !important;
+}
+[data-bs-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Tables */
+[data-bs-theme="dark"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-main);
+    --bs-table-border-color: var(--border-color);
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+[data-bs-theme="dark"] thead th,
+[data-bs-theme="dark"] thead.table-light,
+[data-bs-theme="dark"] thead.table-light th,
+[data-bs-theme="dark"] .table-light,
+[data-bs-theme="dark"] .table-light th,
+[data-bs-theme="dark"] .table-light td {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+    border-bottom: 2px solid var(--border-color) !important;
+}
+[data-bs-theme="dark"] tbody td,
+[data-bs-theme="dark"] tbody th {
+    border-bottom: 1px solid var(--border-color);
+    color: #f1f5f9;
+}
+[data-bs-theme="dark"] tbody tr:hover td {
+    color: #ffffff;
+}
+
+/* Forms */
+[data-bs-theme="dark"] .form-label,
+[data-bs-theme="dark"] label {
+    color: #e2e8f0;
+}
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+    background-color: #1e293b !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus {
+    background-color: #0f172a !important;
+    border-color: var(--primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25) !important;
+}
+[data-bs-theme="dark"] .form-control::placeholder {
+    color: #64748b !important;
+    opacity: 1;
+}
+[data-bs-theme="dark"] .input-group-text {
+    background-color: #1e293b !important;
+    border-color: var(--border-color) !important;
+    color: #94a3b8 !important;
+}
+[data-bs-theme="dark"] select option {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+/* Cards */
+[data-bs-theme="dark"] .card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+[data-bs-theme="dark"] .card-header,
+[data-bs-theme="dark"] .card-footer {
+    background-color: rgba(15, 23, 42, 0.6);
+    border-color: var(--border-color);
+    color: var(--text-main);
+}
+
+/* Dropdowns */
+[data-bs-theme="dark"] .dropdown-menu {
+    background-color: #1e293b;
+    border-color: var(--border-color);
+}
+[data-bs-theme="dark"] .dropdown-item {
+    color: var(--text-main);
+}
+[data-bs-theme="dark"] .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+/* Buttons */
+[data-bs-theme="dark"] .btn-light {
+    background-color: #1e293b !important;
+    border: 1px solid var(--border-color) !important;
+    color: #f8fafc !important;
+}
+[data-bs-theme="dark"] .btn-light:hover {
+    background-color: #334155 !important;
+    border-color: #475569 !important;
+    color: #ffffff !important;
+}
+[data-bs-theme="dark"] .btn-outline-secondary {
+    border-color: #475569 !important;
+    color: #cbd5e1 !important;
+}
+[data-bs-theme="dark"] .btn-outline-secondary:hover {
+    background-color: #334155 !important;
+    border-color: #64748b !important;
+    color: #ffffff !important;
+}
+
+/* Badges & Semantic Colors */
+[data-bs-theme="dark"] .badge.bg-light {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid var(--border-color) !important;
+}
+[data-bs-theme="dark"] .badge.bg-secondary-subtle,
+[data-bs-theme="dark"] .bg-secondary-subtle {
+    background-color: rgba(148, 163, 184, 0.15) !important;
+    color: #cbd5e1 !important;
+}
+[data-bs-theme="dark"] .badge.bg-primary-subtle,
+[data-bs-theme="dark"] .bg-primary-subtle {
+    background-color: rgba(2, 132, 199, 0.2) !important;
+    color: #38bdf8 !important;
+}
+[data-bs-theme="dark"] .badge.bg-info-subtle,
+[data-bs-theme="dark"] .bg-info-subtle {
+    background-color: rgba(6, 182, 212, 0.2) !important;
+    color: #38bdf8 !important;
+}
+[data-bs-theme="dark"] .badge.bg-success-subtle,
+[data-bs-theme="dark"] .bg-success-subtle {
+    background-color: rgba(16, 185, 129, 0.2) !important;
+    color: #34d399 !important;
+}
+[data-bs-theme="dark"] .badge.bg-warning-subtle,
+[data-bs-theme="dark"] .bg-warning-subtle {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+}
+[data-bs-theme="dark"] .badge.bg-danger-subtle,
+[data-bs-theme="dark"] .bg-danger-subtle {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+}
+[data-bs-theme="dark"] .badge.bg-warning.text-dark {
+    background-color: #f59e0b !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+/* Accordions */
+[data-bs-theme="dark"] .accordion-item {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+[data-bs-theme="dark"] .accordion-button {
+    background-color: #1e293b !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+[data-bs-theme="dark"] .accordion-button:not(.collapsed) {
+    background-color: rgba(2, 132, 199, 0.2) !important;
+    color: #38bdf8 !important;
+}
+[data-bs-theme="dark"] .accordion-body {
+    background-color: var(--card-bg) !important;
+    color: #cbd5e1 !important;
+}
+
+/* -------------------------------------------------------------
+ * GLOBAL DARK MODE READABILITY — COMPLETE CONTRAST AUDIT FIX
+ * Covers ALL pages: Owner, Manager, Worker, Customer, Billing
+ * ------------------------------------------------------------- */
+
+/* 1. text-slate-* classes — ALL must be light in dark mode */
+[data-bs-theme="dark"] .text-slate-900,
+[data-bs-theme="dark"] .text-slate-800,
+[data-bs-theme="dark"] .text-slate-700,
+[data-bs-theme="dark"] .text-slate-600,
+[data-bs-theme="dark"] .text-slate-500,
+[data-bs-theme="dark"] .text-slate-400 {
+    color: var(--text-main) !important;
+}
+
+/* 2. metric-value with explicit slate override */
+[data-bs-theme="dark"] .metric-value.text-slate-800,
+[data-bs-theme="dark"] .metric-value.text-dark {
+    color: var(--text-main) !important;
+}
+
+/* 3. Inline bg-light blocks used as notification/announcement/info panels */
+[data-bs-theme="dark"] .p-3.bg-light,
+[data-bs-theme="dark"] .p-2.bg-light,
+[data-bs-theme="dark"] .p-4.bg-light,
+[data-bs-theme="dark"] .mb-4.bg-light,
+[data-bs-theme="dark"] div.bg-light {
+    background-color: #1e293b !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* 4. Any strong, b, or fw-bold text that may inherit dark parent colors */
+[data-bs-theme="dark"] strong,
+[data-bs-theme="dark"] b {
+    color: inherit;
+}
+[data-bs-theme="dark"] .fw-bold,
+[data-bs-theme="dark"] .fw-semibold {
+    color: inherit;
+}
+
+/* 5. card elements that set text-slate-800 at card level */
+[data-bs-theme="dark"] .card.text-slate-800,
+[data-bs-theme="dark"] .glass-card.text-slate-800 {
+    color: var(--text-main) !important;
+}
+
+/* 6. table-warning rows in dark mode — fix dark text on gold bg */
+[data-bs-theme="dark"] .table-warning,
+[data-bs-theme="dark"] tr.table-warning td,
+[data-bs-theme="dark"] tr.table-warning th {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #fbbf24 !important;
+}
+
+/* 7. badge bg-light text-dark — override to be readable */
+[data-bs-theme="dark"] .badge.bg-light.text-dark,
+[data-bs-theme="dark"] span.badge.bg-light {
+    background-color: #334155 !important;
+    color: #e2e8f0 !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 8. Attendance / form inline panels with bg-light border */
+[data-bs-theme="dark"] form.bg-light,
+[data-bs-theme="dark"] .d-inline-block.bg-light {
+    background-color: #1e293b !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+/* 9. Notification / alert panels with border-start accent */
+[data-bs-theme="dark"] .border-start.border-primary.bg-light,
+[data-bs-theme="dark"] .border-start.border-4 {
+    background-color: #1e293b !important;
+    color: var(--text-main) !important;
+}
+
+/* 10. Fix any hardcoded inline color:black or color:#000 is impossible via CSS,
+    but catch text-body which Bootstrap maps to body color */
+[data-bs-theme="dark"] .text-body {
+    color: var(--text-main) !important;
+}
+
+/* 11. List group items */
+[data-bs-theme="dark"] .list-group-item {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+[data-bs-theme="dark"] .list-group-item-action:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+}
+
+/* 12. Alerts */
+[data-bs-theme="dark"] .alert {
+    border-color: var(--border-color);
+}
+[data-bs-theme="dark"] .alert-info {
+    background-color: rgba(6, 182, 212, 0.15) !important;
+    color: #67e8f9 !important;
+    border-color: rgba(6, 182, 212, 0.3) !important;
+}
+[data-bs-theme="dark"] .alert-success {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+[data-bs-theme="dark"] .alert-warning {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #fcd34d !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+}
+[data-bs-theme="dark"] .alert-danger {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* 13. Customer dashboard KPI values — h4 with text-slate */
+[data-bs-theme="dark"] h4.fw-bold.text-slate-800,
+[data-bs-theme="dark"] h4.fw-bold.mb-0.text-slate-800,
+[data-bs-theme="dark"] h4.fw-bold.mb-1.text-slate-800 {
+    color: var(--text-main) !important;
+}
+
+/* 14. HR separators in dark mode */
+[data-bs-theme="dark"] hr {
+    border-color: var(--border-color);
+    opacity: 0.5;
+}
+
+/* 15. Pagination */
+[data-bs-theme="dark"] .page-link {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: #94a3b8 !important;
+}
+[data-bs-theme="dark"] .page-link:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+[data-bs-theme="dark"] .page-item.active .page-link {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #ffffff !important;
+}
+[data-bs-theme="dark"] .page-item.disabled .page-link {
+    background-color: #1e293b !important;
+    color: #475569 !important;
+}
+
+/* 16. Tooltips */
+[data-bs-theme="dark"] .tooltip-inner {
+    background-color: #334155;
+    color: #f8fafc;
+}
+
+/* 17. Billing module metric cards — ensure all stat values are readable */
+[data-bs-theme="dark"] .card-body h3,
+[data-bs-theme="dark"] .card-body h4,
+[data-bs-theme="dark"] .card-body h5,
+[data-bs-theme="dark"] .card-body .display-6,
+[data-bs-theme="dark"] .card-body .fs-3,
+[data-bs-theme="dark"] .card-body .fs-4 {
+    color: var(--text-main) !important;
+}
+
+/* 18. Stage timeline track (progress bar background) */
+[data-bs-theme="dark"] .stage-timeline::before {
+    background: #334155 !important;
+}
+
+/* 19. Factory view and manager bg-light panels */
+[data-bs-theme="dark"] .dept-card .bg-light,
+[data-bs-theme="dark"] .factory-floor-grid .bg-light {
+    background-color: #1e293b !important;
+    color: var(--text-main) !important;
+}
+
+/* 20. Ensure all p, span, div inherit body color properly */
+[data-bs-theme="dark"] p:not(.text-muted):not(.text-success):not(.text-danger):not(.text-warning):not(.text-info):not(.text-primary) {
+    color: inherit;
+}
+
+/* 21. Order Deadline Notification Center & Dropdown */
+#deadlineNotificationDropdown .dropdown-menu {
+    border-color: #334155 !important;
+    background-color: #1e293b !important;
+}
+#deadlineNotificationDropdown .list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ==========================================================================
+   22. PROFESSIONAL COMPANY INVOICE (FAB FORA INTERNATIONAL PVT. LTD.)
+   Clean A4 business document styling + dedicated @media print rules
+   ========================================================================== */
+
+.invoice-page-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding-bottom: 2.5rem;
+}
+
+.invoice-sheet {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.25);
+    padding: 2.5rem 2.75rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Ensure crisp high-contrast typography on white invoice paper in dark-themed app */
+.invoice-sheet h1,
+.invoice-sheet h2,
+.invoice-sheet h3,
+.invoice-sheet h4,
+.invoice-sheet h5,
+.invoice-sheet h6 {
+    color: #0f172a !important;
+}
+
+.invoice-sheet p,
+.invoice-sheet div,
+.invoice-sheet span,
+.invoice-sheet td,
+.invoice-sheet th {
+    color: #1e293b;
+}
+
+.invoice-brand-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.28rem;
+    font-weight: 800;
+    color: #0f172a !important;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.invoice-brand-tagline {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0284c7 !important;
+    letter-spacing: 0.01em;
+}
+
+.invoice-brand-address {
+    font-size: 0.75rem;
+    color: #64748b !important;
+    margin-top: 2px;
+}
+
+.invoice-doc-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #0284c7 !important;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+
+.invoice-meta-item {
+    font-size: 0.825rem;
+    color: #475569 !important;
+    line-height: 1.45;
+}
+
+.invoice-meta-item strong {
+    color: #0f172a !important;
+}
+
+/* Status Badges */
+.invoice-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.3rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 9999px;
+}
+
+.invoice-status-paid {
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+    border: 1px solid #86efac;
+}
+
+.invoice-status-pending {
+    background-color: #fef3c7 !important;
+    color: #b45309 !important;
+    border: 1px solid #fcd34d;
+}
+
+.invoice-status-partial {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #7dd3fc;
+}
+
+/* Section Cards (Bill To & Order Details) */
+.invoice-info-card {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 1rem 1.15rem;
+    height: 100%;
+}
+
+.invoice-card-heading {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b !important;
+    margin-bottom: 0.45rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.35rem;
+}
+
+.invoice-party-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a !important;
+    margin-bottom: 0.25rem;
+}
+
+.invoice-detail-line {
+    font-size: 0.825rem;
+    color: #475569 !important;
+    line-height: 1.45;
+}
+
+.invoice-detail-label {
+    color: #64748b !important;
+    font-weight: 500;
+}
+
+.invoice-detail-val {
+    color: #0f172a !important;
+    font-weight: 600;
+}
+
+/* Billing Table */
+.invoice-table-wrapper {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff !important;
+}
+
+.invoice-table thead th {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.invoice-table tbody td {
+    padding: 0.85rem 1rem;
+    font-size: 0.875rem;
+    color: #1e293b !important;
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.invoice-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Totals Area */
+.invoice-totals-table {
+    width: 100%;
+    margin-left: auto;
+    border-collapse: collapse;
+}
+
+.invoice-totals-table td {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+.invoice-totals-table td.label-col {
+    color: #475569 !important;
+    text-align: right;
+    font-weight: 500;
+}
+
+.invoice-totals-table td.val-col {
+    color: #0f172a !important;
+    text-align: right;
+    font-weight: 600;
+    width: 145px;
+}
+
+.invoice-grand-total-row td {
+    border-top: 2px solid #0284c7 !important;
+    background-color: #f0f9ff !important;
+    padding: 0.75rem 0.75rem !important;
+}
+
+.invoice-grand-total-label {
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    color: #0284c7 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.invoice-grand-total-val {
+    font-size: 1.3rem !important;
+    font-weight: 800 !important;
+    color: #0284c7 !important;
+}
+
+/* Authorized Signature */
+.invoice-signature-box {
+    margin-top: 1.5rem;
+}
+
+.invoice-sig-line {
+    border-bottom: 1.5px solid #94a3b8;
+    width: 210px;
+    margin-left: auto;
+    margin-bottom: 6px;
+}
+
+.invoice-sig-title {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: #0f172a !important;
+}
+
+.invoice-sig-company {
+    font-size: 0.75rem;
+    color: #64748b !important;
+}
+
+/* -------------------------------------------------------------
+   Print Stylesheet (@media print)
+   Prints ONLY the professional invoice document on clean A4 paper
+   ------------------------------------------------------------- */
+@media print {
+    /* Hide all application UI controls and non-printable elements */
+    .sidebar,
+    .top-header,
+    footer,
+    .alert,
+    .no-print,
+    #sidebarToggle,
+    #deadlineNotificationDropdown,
+    .btn,
+    nav {
+        display: none !important;
+    }
+
+    html, body {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .app-layout {
+        display: block !important;
+        min-height: auto !important;
+    }
+
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: transparent !important;
+    }
+
+    .invoice-page-wrapper {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .invoice-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 10mm 12mm 10mm 12mm;
+    }
+}
+
+
+

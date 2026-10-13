@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}Manager Dashboard - StitchTech ERP{% endblock %}
+{% block header_title %}Production Floor Operations Manager{% endblock %}
+
+{% block content %}
+<div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%); color: white; border: none;">
+    <h4 class="fw-bold mb-1 brand-font">Welcome to FAB FORA INTERNATIONAL PVT. LTD.</h4>
+    <p class="mb-0 text-white-50 small">Smart AI-Powered Garment Manufacturing & Production Planning Platform</p>
+</div>
+
+<!-- NEW ROLE-BASED DASHBOARD: Manager Operations Overviews -->
+<div class="row g-3 mb-4">
+    <!-- Today's Target -->
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card metric-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div>
+                    <div class="metric-label text-uppercase small">Daily Production Target</div>
+                    <div class="metric-value text-primary">{{ "{:,}".format(daily_target_completed) }} <span class="fs-6 text-muted">/ {{ "{:,}".format(daily_target_total) }} pcs</span></div>
+                </div>
+                <div class="bg-primary text-white p-2 rounded-3"><i class="bi bi-bullseye fs-4"></i></div>
+            </div>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-primary" style="width: {{ (daily_target_completed / daily_target_total * 100)|round|int if daily_target_total else 0 }}%;"></div>
+            </div>
+            <div class="small text-muted mt-1 text-end">{{ daily_target_remaining }} remaining</div>
+        </div>
+    </div>
+
+    <!-- Attendance (Department-wise) -->
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card metric-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div>
+                    <div class="metric-label text-uppercase small">Floor Attendance</div>
+                    <div class="fw-bold fs-5 text-info">Live Tracking</div>
+                </div>
+                <div class="bg-info text-white p-2 rounded-3"><i class="bi bi-people-fill fs-4"></i></div>
+            </div>
+            <div class="small">
+                {% for dept, data in dept_attendance.items() %}
+                <div class="d-flex justify-content-between border-bottom py-1">
+                    <span class="text-muted">{{ dept }}</span>
+                    <span class="fw-semibold {% if data.present < data.total %}text-warning{% else %}text-success{% endif %}">{{ data.present }} / {{ data.total }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Priority & Delayed -->
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card metric-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div>
+                    <div class="metric-label text-uppercase small">Order Bottlenecks</div>
+                    <div class="fw-bold fs-5 text-danger">{{ priority_summary['URGENT'] + delayed_summary }} Critical</div>
+                </div>
+                <div class="bg-danger text-white p-2 rounded-3"><i class="bi bi-exclamation-diamond fs-4"></i></div>
+            </div>
+            <div class="small vstack gap-1">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">URGENT Priorities</span>
+                    <span class="badge bg-danger rounded-pill">{{ priority_summary['URGENT'] }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Delayed Orders</span>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ delayed_summary }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage Status -->
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card metric-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div>
+                    <div class="metric-label text-uppercase small">Production Stages</div>
+                    <div class="fw-bold fs-5 text-success">Active Batches</div>
+                </div>
+                <div class="bg-success text-white p-2 rounded-3"><i class="bi bi-diagram-3 fs-4"></i></div>
+            </div>
+            <div class="small mt-1 d-flex gap-2 flex-wrap">
+                <span class="badge bg-light text-dark border">Cutting: {{ stage_status['Cutting'] }}</span>
+                <span class="badge bg-light text-dark border">Stitch: {{ stage_status['Stitching'] }}</span>
+                <span class="badge bg-light text-dark border">QA: {{ stage_status['Quality Check'] }}</span>
+                <span class="badge bg-light text-dark border">Pack: {{ stage_status['Packing'] }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PRODUCTION COST OVERVIEW & CRITICAL ALERTS -->
+<div class="row g-4 mb-4">
+
+    <!-- Card 3: Production Cost Overview (Manager) -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                <span class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                    <i class="bi bi-cash-coin fs-5"></i>
+                </span>
+                Production Cost Overview
+            </h5>
+            <div class="vstack gap-3">
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-sun me-2 text-warning"></i>Today's Production Cost</span>
+                    <span class="fw-bold text-slate-800 fs-6">₹ N/A</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-boxes me-2 text-primary"></i>Material Usage / Cost</span>
+                    <span class="fw-bold text-slate-800 fs-6">₹ N/A</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-receipt me-2 text-info"></i>Cost per Production Order</span>
+                    <span class="fw-bold text-slate-800 fs-6">₹ N/A</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-graph-up me-2 text-success"></i>Production Efficiency</span>
+                    <span class="fw-bold text-success fs-6">N/A</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Critical Alerts (Manager) -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                <span class="bg-danger text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                </span>
+                Critical Alerts
+            </h5>
+            <div class="vstack gap-2">
+                {% if manager_critical_alerts %}
+                    {% for alert in manager_critical_alerts %}
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">{{ alert.icon }}</span>
+                        <span class="fw-semibold text-slate-800 small">{{ alert.message }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🔴</span><span class="fw-semibold text-slate-800 small">Machine Breakdown — No machine issues detected</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🟠</span><span class="fw-semibold text-slate-800 small">Worker Shortage — All workers present</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🟡</span><span class="fw-semibold text-slate-800 small">Low Material — No low stock detected</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🔴</span><span class="fw-semibold text-slate-800 small">Production Delay — No delays recorded</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🟠</span><span class="fw-semibold text-slate-800 small">Quality Issue — No quality issues flagged</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Active Floor Alerts -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Active Floor Alerts</h5>
+                <span class="badge bg-warning text-dark">{{ alerts|length }} Unresolved</span>
+            </div>
+
+            <div class="vstack gap-3">
+                {% for alt in alerts %}
+                <div class="p-3 rounded-3 bg-light border-start border-4 border-{% if alt.priority == 'Critical' or alt.priority == 'High' %}danger{% else %}warning{% endif %} shadow-sm">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="badge bg-{% if alt.priority == 'Critical' or alt.priority == 'High' %}danger{% else %}warning{% endif %} text-uppercase mb-1">{{ alt.alert_type }}</span>
+                            <div class="fw-bold text-slate-800">{{ alt.message }}</div>
+                            <small class="text-muted">{{ alt.created_at.strftime('%H:%M %p') }}</small>
+                        </div>
+                        <form action="{{ url_for('manager.alert_resolve', alert_id=alt.id) }}" method="POST">
+                            <button type="submit" class="btn btn-sm btn-outline-success">Mark Resolved</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-check-circle-fill text-success fs-2 d-block mb-2"></i>
+                    No active floor alerts! Production is running smoothly.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-building-fill-gear me-2 text-primary"></i>Floor Management</h5>
+            <div class="d-grid gap-3">
+                <a href="{{ url_for('manager.factory_view') }}" class="btn btn-primary btn-lg rounded-3 text-start p-3">
+                    <div class="fw-bold"><i class="bi bi-eye-fill me-2"></i> Digital Factory View</div>
+                    <small class="text-white-50">Visual monitoring across 4 floor sections</small>
+                </a>
+                <a href="{{ url_for('manager.assign_tasks') }}" class="btn btn-indigo btn-lg text-white rounded-3 text-start p-3" style="background:#6366f1;">
+                    <div class="fw-bold"><i class="bi bi-person-gear me-2"></i> Assign Workers & Lines</div>
+                    <small class="text-white-50">Reallocate floor hands to bottlenecks</small>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Production Floor Schedule -->
+<div class="glass-card p-4 mb-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3-fill me-2 text-primary"></i>Active Garment Floor Batches</h5>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Garment Type</th>
+                    <th>Quantity</th>
+                    <th>Priority</th>
+                    <th>Floor Stage</th>
+                    <th>Progress</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ord in orders %}
+                <tr>
+                    <td class="fw-bold">#{{ ord.id }}</td>
+                    <td><span class="badge bg-primary-subtle text-primary">{{ ord.garment_type }}</span></td>
+                    <td class="fw-bold">{{ "{:,}".format(ord.quantity) }} units</td>
+                    <td>
+                        {% set prio = ord.smart_priority %}
+                        {% if prio == 'URGENT' %}
+                            <span class="badge bg-danger px-2 py-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ ord.smart_priority_reasons|join(', ') }}">🔴 URGENT</span>
+                        {% elif prio == 'HIGH' %}
+                            <span class="badge bg-warning text-dark px-2 py-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ ord.smart_priority_reasons|join(', ') }}">🟠 HIGH</span>
+                        {% elif prio == 'NORMAL' %}
+                            <span class="badge bg-primary px-2 py-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ ord.smart_priority_reasons|join(', ') }}">🟡 NORMAL</span>
+                        {% else %}
+                            <span class="badge bg-success px-2 py-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ ord.smart_priority_reasons|join(', ') }}">🟢 LOW</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-info-subtle text-info-emphasis px-3 py-1">{{ ord.current_stage }}</span></td>
+                    <td style="width: 150px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-primary" style="width: {{ ord.progress_percentage }}%;"></div>
+                            </div>
+                            <small class="fw-bold">{{ ord.progress_percentage }}%</small>
+                        </div>
+                    </td>
+                    <td>{{ ord.deadline.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        {% if ord.status == 'Delivered' %}
+                            <span class="badge bg-success">Delivered</span>
+                        {% elif ord.status == 'Delayed' %}
+                            <span class="badge bg-danger">Delayed</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">In Production</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#updateSizesModal{{ ord.id }}" title="Log Size Progress">
+                                <i class="bi bi-rulers"></i> Sizes
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#reportDelayModal{{ ord.id }}" title="Report Delay">
+                                <i class="bi bi-clock-history"></i> Delay
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#priorityModal{{ ord.id }}" title="Set Priority">
+                                <i class="bi bi-exclamation-octagon"></i> Priority
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9" class="text-muted text-center py-3">No active production orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Order Action Modals (outside table to avoid invalid HTML nesting) -->
+{% for ord in orders %}
+
+<!-- Modal: Update Sizes for Order #{{ ord.id }} -->
+<div class="modal fade" id="updateSizesModal{{ ord.id }}" tabindex="-1" aria-labelledby="updateSizesLabel{{ ord.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="updateSizesLabel{{ ord.id }}"><i class="bi bi-rulers me-2"></i>Size-wise Progress - Order #{{ ord.id }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('manager.order_sizes_update') }}" method="POST">
+                <input type="hidden" name="order_id" value="{{ ord.id }}">
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 small border-0">
+                        Enter the number of completed pieces for each garment size.
+                    </div>
+                    <div class="vstack gap-3">
+                        {% for sq in ord.size_quantities %}
+                        <div class="row align-items-center">
+                            <div class="col-4">
+                                <span class="badge bg-dark fs-6 w-100">Size {{ sq.size }}</span>
+                            </div>
+                            <div class="col-8">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">Completed</span>
+                                    <input type="number" name="completed_{{ sq.size }}" class="form-control" value="{{ sq.completed_quantity }}" min="0" max="{{ sq.planned_quantity }}" required>
+                                    <span class="input-group-text">/ {{ sq.planned_quantity }} pcs</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-muted text-center py-2">
+                            This order does not have sizes initialized. They will be auto-created upon submit.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Save Progress</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Report Delay for Order #{{ ord.id }} -->
+<div class="modal fade" id="reportDelayModal{{ ord.id }}" tabindex="-1" aria-labelledby="reportDelayLabel{{ ord.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="reportDelayLabel{{ ord.id }}"><i class="bi bi-clock-history me-2"></i>Report Delay - Order #{{ ord.id }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('manager.order_delay_add') }}" method="POST">
+                <input type="hidden" name="order_id" value="{{ ord.id }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select Delay Reason</label>
+                        <select name="reason" class="form-select" required>
+                            <option value="Machine Breakdown">Machine Breakdown</option>
+                            <option value="Material/Fabric Shortage">Material/Fabric Shortage</option>
+                            <option value="Worker Shortage">Worker Shortage</option>
+                            <option value="Quality/Rework Issue">Quality/Rework Issue</option>
+                            <option value="Power/Infrastructure Issue">Power/Infrastructure Issue</option>
+                            <option value="Customer Order Modification">Customer Order Modification</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes / Description (Optional)</label>
+                        <textarea name="note" class="form-control" rows="3" placeholder="Explain the cause, bottleneck, or action plan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger px-4">Log Delay Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Priority Override for Order #{{ ord.id }} -->
+<div class="modal fade" id="priorityModal{{ ord.id }}" tabindex="-1" aria-labelledby="priorityModalLabel{{ ord.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title fw-bold" id="priorityModalLabel{{ ord.id }}"><i class="bi bi-exclamation-octagon me-2"></i>Priority Override - Order #{{ ord.id }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('manager.order_priority_update') }}" method="POST">
+                <input type="hidden" name="order_id" value="{{ ord.id }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Priority Level</label>
+                        <select name="priority" class="form-select" required>
+                            <option value="Auto" {% if not ord.priority_override %}selected{% endif %}>Auto (System Calculated)</option>
+                            <option value="URGENT" {% if ord.priority_override == 'URGENT' %}selected{% endif %}>🔴 URGENT</option>
+                            <option value="HIGH" {% if ord.priority_override == 'HIGH' %}selected{% endif %}>🟠 HIGH</option>
+                            <option value="NORMAL" {% if ord.priority_override == 'NORMAL' %}selected{% endif %}>🟡 NORMAL</option>
+                            <option value="LOW" {% if ord.priority_override == 'LOW' %}selected{% endif %}>🟢 LOW</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Update Priority</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+{% endblock %}

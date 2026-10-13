@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Logs - StitchTech ERP{% endblock %}
+{% block header_title %}System Audit Trail & Activity Logs{% endblock %}
+
+{% block content %}
+<div class="glass-card p-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-journal-text me-2 text-primary"></i>Audit Trail History</h5>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Log ID</th>
+                    <th>User ID</th>
+                    <th>User Role</th>
+                    <th>Activity Description</th>
+                    <th>Timestamp (UTC)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td class="fw-bold">LOG-{{ "%04d"|format(log.id) }}</td>
+                    <td>{{ log.user_id if log.user_id else 'System' }}</td>
+                    <td>
+                        <span class="badge bg-primary-subtle text-primary">{{ log.user.role if log.user else 'System' }}</span>
+                    </td>
+                    <td class="text-slate-800 fw-semibold">{{ log.activity }}</td>
+                    <td class="small text-muted">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-muted">No activity logs recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

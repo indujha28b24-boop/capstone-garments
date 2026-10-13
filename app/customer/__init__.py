@@ -1,0 +1,1 @@
+# Customer Portal module initialization

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Order Feedback & Rating - StitchTech ERP{% endblock %}
+{% block header_title %}Garment Order Review & Quality Rating{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <h4 class="fw-bold mb-1 text-slate-800 brand-font">Rate Order Batch #ORD-{{ "%04d"|format(order.id) }}</h4>
+            <p class="text-muted small mb-4">Your rating directly influences our automated quality feedback models and assembly line improvements.</p>
+
+            <form action="{{ url_for('customer.feedback', order_id=order.id) }}" method="POST">
+                
+                <!-- Product Rating (5 stars) -->
+                <div class="mb-4 text-center p-3 border rounded bg-light">
+                    <label class="form-label fw-bold text-slate-800 d-block mb-2">Product Rating</label>
+                    <div class="d-flex justify-content-center gap-2">
+                        {% for i in range(1, 6) %}
+                        <div class="form-check form-check-inline p-0 m-0">
+                            <input type="radio" name="product_rating" value="{{ i }}" class="btn-check" id="prod_star_{{ i }}" {% if i == 5 %}checked{% endif %}>
+                            <label class="btn btn-outline-warning border-0 rounded-circle p-2" for="prod_star_{{ i }}">
+                                <i class="bi bi-star-fill fs-3"></i>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Quality Rating (5 stars) -->
+                <div class="mb-4 text-center p-3 border rounded bg-light">
+                    <label class="form-label fw-bold text-slate-800 d-block mb-2">Garment Stitching & Material Quality</label>
+                    <div class="d-flex justify-content-center gap-2">
+                        {% for i in range(1, 6) %}
+                        <div class="form-check form-check-inline p-0 m-0">
+                            <input type="radio" name="quality_rating" value="{{ i }}" class="btn-check" id="qual_star_{{ i }}" {% if i == 5 %}checked{% endif %}>
+                            <label class="btn btn-outline-warning border-0 rounded-circle p-2" for="qual_star_{{ i }}">
+                                <i class="bi bi-star-fill fs-3"></i>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Delivery Rating (5 stars) -->
+                <div class="mb-4 text-center p-3 border rounded bg-light">
+                    <label class="form-label fw-bold text-slate-800 d-block mb-2">Delivery Speed & Vehicle Cargo Transport</label>
+                    <div class="d-flex justify-content-center gap-2">
+                        {% for i in range(1, 6) %}
+                        <div class="form-check form-check-inline p-0 m-0">
+                            <input type="radio" name="delivery_rating" value="{{ i }}" class="btn-check" id="del_star_{{ i }}" {% if i == 5 %}checked{% endif %}>
+                            <label class="btn btn-outline-warning border-0 rounded-circle p-2" for="del_star_{{ i }}">
+                                <i class="bi bi-star-fill fs-3"></i>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-slate-700">Detailed Review Comments</label>
+                    <textarea name="review_text" class="form-control" rows="3" placeholder="Tell us what you liked about this order..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-slate-700">Suggestions for Line Improvements</label>
+                    <textarea name="suggestions" class="form-control" rows="3" placeholder="Provide any packaging or textile texture improvement suggestions..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold shadow-sm">
+                    <i class="bi bi-patch-check me-1"></i> Submit Review Feedback
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

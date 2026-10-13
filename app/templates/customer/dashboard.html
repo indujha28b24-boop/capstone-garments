@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Dashboard - StitchTech ERP{% endblock %}
+{% block header_title %}Customer Service Center{% endblock %}
+
+{% block content %}
+<div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%); color: white; border: none;">
+    <h4 class="fw-bold mb-1 brand-font">Welcome to FAB FORA INTERNATIONAL PVT. LTD.</h4>
+    <p class="mb-0 text-white-50 small">Smart AI-Powered Garment Manufacturing & Production Planning Platform</p>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1 text-slate-800 brand-font">Welcome back, {{ customer.name }}!</h4>
+        <p class="text-muted small mb-0"><i class="bi bi-calendar3 me-1"></i> Today is {{ current_date }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+        <a href="{{ url_for('customer.place_order_request') }}" class="btn btn-primary rounded-pill px-3 shadow-sm">
+            <i class="bi bi-cart-plus-fill me-1"></i> Place New Order
+        </a>
+        <a href="{{ url_for('customer.my_online_orders') }}" class="btn btn-outline-info rounded-pill px-3 shadow-sm">
+            <i class="bi bi-list-check me-1"></i> My Online Orders
+            {% if pending_online_requests_count > 0 %}
+            <span class="badge bg-warning text-dark ms-1">{{ pending_online_requests_count }}</span>
+            {% endif %}
+        </a>
+        <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill"><i class="bi bi-cpu-fill me-1"></i> AI Delivery Confidence: {{ confidence_avg }}%</span>
+    </div>
+</div>
+
+{% if pending_online_requests_count > 0 %}
+<div class="alert border-0 rounded-3 d-flex align-items-center justify-content-between p-3 mb-4 shadow-sm" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3) !important;">
+    <div class="d-flex align-items-center gap-3">
+        <div class="p-2 rounded-circle" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">
+            <i class="bi bi-hourglass-split fs-5"></i>
+        </div>
+        <div>
+            <div class="fw-bold text-warning">You have {{ pending_online_requests_count }} Online Order{{ 's' if pending_online_requests_count > 1 else '' }} waiting for management confirmation.</div>
+            <small class="text-white-50">Once accepted by production management, orders automatically enter the production workflow.</small>
+        </div>
+    </div>
+    <a href="{{ url_for('customer.my_online_orders') }}" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3">
+        View My Requests <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+</div>
+{% endif %}
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="glass-card p-3 d-flex align-items-center gap-3">
+            <div class="bg-primary text-white p-3 rounded-3 fs-3">
+                <i class="bi bi-bag-check-fill"></i>
+            </div>
+            <div>
+                <small class="text-muted d-block small">Total Orders</small>
+                <h4 class="fw-bold mb-0 text-slate-800">{{ total_orders }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-6">
+        <div class="glass-card p-3 d-flex align-items-center gap-3">
+            <div class="bg-success text-white p-3 rounded-3 fs-3">
+                <i class="bi bi-arrow-repeat"></i>
+            </div>
+            <div>
+                <small class="text-muted d-block small">Active Orders</small>
+                <h4 class="fw-bold mb-0 text-success">{{ active_orders }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-6">
+        <div class="glass-card p-3 d-flex align-items-center gap-3">
+            <div class="bg-info text-white p-3 rounded-3 fs-3">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div>
+                <small class="text-muted d-block small">Completed</small>
+                <h4 class="fw-bold mb-0 text-info">{{ completed_orders }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-6">
+        <div class="glass-card p-3 d-flex align-items-center gap-3">
+            <div class="bg-warning text-white p-3 rounded-3 fs-3">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <small class="text-muted d-block small">Pending Confirm</small>
+                <h4 class="fw-bold mb-0 text-warning">{{ pending_orders }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Directory Table -->
+<div class="glass-card p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-list-stars text-primary me-1"></i> My Purchase Orders & Tracking</h5>
+        <span class="text-muted small">Showing {{ orders|length }} Orders</span>
+    </div>
+
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Order Ref</th>
+                    <th>Garment Type</th>
+                    <th>Quantity</th>
+                    <th>Expected Date</th>
+                    <th>Production Stage</th>
+                    <th>Completion</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ord in orders %}
+                <tr>
+                    <td class="fw-bold">ORD-{{ "%04d"|format(ord.id) }}</td>
+                    <td><span class="badge bg-primary-subtle text-primary">{{ ord.garment_type }}</span></td>
+                    <td class="fw-bold">{{ "{:,}".format(ord.quantity) }} units</td>
+                    <td>{{ ord.deadline.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        <span class="badge bg-{% if ord.status == 'Delivered' %}success-subtle text-success{% else %}info-subtle text-info{% endif %} px-3 py-1">
+                            {{ ord.status }}
+                        </span>
+                    </td>
+                    <td style="min-width: 140px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-primary" style="width: {{ ord.progress_percentage }}%;"></div>
+                            </div>
+                            <small class="fw-bold">{{ ord.progress_percentage }}%</small>
+                        </div>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex align-items-center justify-content-end gap-1 flex-wrap">
+                            <a href="{{ url_for('customer.order_detail', order_id=ord.id) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                <i class="bi bi-eye"></i> Track
+                            </a>
+                            {% if ord.invoice %}
+                            <a href="{{ url_for('customer.invoice_view', invoice_id=ord.invoice.id) }}" class="btn btn-sm btn-outline-info rounded-pill">
+                                <i class="bi bi-receipt"></i> View Invoice
+                            </a>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-muted rounded-pill px-2 py-1 small">Invoice Pending</span>
+                            {% endif %}
+                            {% if ord.status == 'Delivered' %}
+                            <a href="{{ url_for('customer.feedback', order_id=ord.id) }}" class="btn btn-sm btn-outline-warning rounded-pill">
+                                <i class="bi bi-star"></i> Rate
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-bag-x fs-1 d-block mb-2"></i>
+        <span>No orders associated with this account.</span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Charts & Notifications -->
+<div class="row g-4">
+    <!-- Chart.js Analysis -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-line text-primary me-2"></i>Order & Logistics Analytics</h5>
+            <div style="height: 250px;">
+                <canvas id="customerOrderChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live System Notifications -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-bell-fill text-warning me-2"></i>Live Portal Updates</h5>
+            <div class="vstack gap-3">
+                {% for notif in notifications %}
+                <div class="p-3 rounded bg-light border-start border-4 border-primary shadow-sm">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <strong class="text-slate-800 small">{{ notif.title }}</strong>
+                        <small class="text-muted" style="font-size:0.7rem;">{{ notif.time }}</small>
+                    </div>
+                    <p class="text-muted mb-0" style="font-size:0.75rem;">{{ notif.desc }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('customerOrderChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Total Orders', 'Active Lines', 'Completed', 'Pending Confirm'],
+            datasets: [{
+                label: 'Order Volume Summary',
+                data: [{{ total_orders }}, {{ active_orders }}, {{ completed_orders }}, {{ pending_orders }}],
+                backgroundColor: ['#0284c7', '#10b981', '#06b6d4', '#f59e0b'],
+                borderWidth: 0,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

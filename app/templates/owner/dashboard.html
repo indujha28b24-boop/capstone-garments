@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+
+{% block title %}Executive Owner Dashboard - StitchTech ERP{% endblock %}
+{% block header_title %}Executive ERP Overview{% endblock %}
+
+{% block content %}
+<div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%); color: white; border: none;">
+    <h4 class="fw-bold mb-1 brand-font">Welcome to FAB FORA INTERNATIONAL PVT. LTD.</h4>
+    <p class="mb-0 text-white-50 small">Smart AI-Powered Garment Manufacturing & Production Planning Platform</p>
+</div>
+
+<!-- Top Executive Metrics Grid -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card metric-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="metric-label">Total Orders</div>
+                    <div class="metric-value text-primary">{{ total_orders }}</div>
+                    <small class="text-success"><i class="bi bi-arrow-up-right me-1"></i>{{ active_orders }} Active | {{ pending_orders }} Pending</small>
+                </div>
+                <img src="{{ url_for('static', filename='images/delivery/apparel_delivery.jpg') }}" class="rounded-3 shadow-sm" style="width:54px; height:54px; object-fit:cover;" alt="Orders">
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card metric-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="metric-label">Estimated Revenue</div>
+                    <div class="metric-value text-slate-800">₹{{ "{:,.0f}".format(total_revenue) }}</div>
+                    <small class="text-muted"><i class="bi bi-tag-fill me-1"></i>Completed: {{ completed_orders }}</small>
+                </div>
+                <img src="{{ url_for('static', filename='images/factory/hero_garment_factory.jpg') }}" class="rounded-3 shadow-sm" style="width:54px; height:54px; object-fit:cover;" alt="Revenue">
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card metric-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="metric-label">Floor Workforce</div>
+                    <div class="metric-value text-info">{{ available_workers }} <span class="fs-6 text-muted">/ {{ total_workers }}</span></div>
+                    <small class="text-info"><i class="bi bi-people-fill me-1"></i>Available Floor Hands</small>
+                </div>
+                <img src="{{ url_for('static', filename='images/workers/worker_sewing_bg.jpg') }}" class="rounded-3 shadow-sm" style="width:54px; height:54px; object-fit:cover;" alt="Workforce">
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="glass-card metric-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="metric-label">Machine Status</div>
+                    <div class="metric-value text-slate-800">{{ running_machines }} <span class="fs-6 text-muted">/ {{ total_machines }}</span></div>
+                    <small class="{% if low_inventory_count > 0 %}text-danger{% else %}text-success{% endif %}">
+                        <i class="bi bi-box-seam me-1"></i>{{ low_inventory_count }} Low Stock Items
+                    </small>
+                </div>
+                <img src="{{ url_for('static', filename='images/machines/sewing_machine.jpg') }}" class="rounded-3 shadow-sm" style="width:54px; height:54px; object-fit:cover;" alt="Machines">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NEW ROLE-BASED DASHBOARD: Owner Operational Overviews -->
+<div class="row g-4 mb-4">
+    <!-- Production Overview -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Production Overview</h5>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Today's Output</span>
+                <span class="fw-bold text-slate-800">{{ "{:,}".format(today_production) }} pcs</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+                <span class="text-muted">Monthly Output</span>
+                <span class="fw-bold text-slate-800">{{ "{:,}".format(monthly_production) }} pcs</span>
+            </div>
+            <div class="mt-4">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small fw-semibold">Monthly Target Completion</span>
+                    <span class="small fw-bold text-success">{{ ((monthly_production / production_target) * 100)|round|int if production_target else 0 }}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-success" style="width: {{ ((monthly_production / production_target) * 100)|round|int if production_target else 0 }}%;"></div>
+                </div>
+                <small class="text-muted d-block mt-1">Target: {{ "{:,}".format(production_target) }} pcs</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Overview -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-info"></i>Attendance</h5>
+                <span class="badge bg-info-subtle text-info-emphasis">{{ attendance_percent }}% Present</span>
+            </div>
+            <div class="row text-center mt-3">
+                <div class="col-4 border-end">
+                    <div class="display-6 fw-bold text-success">{{ present_workers }}</div>
+                    <small class="text-muted d-block">Present</small>
+                </div>
+                <div class="col-4 border-end">
+                    <div class="display-6 fw-bold text-danger">{{ absent_workers }}</div>
+                    <small class="text-muted d-block">Absent</small>
+                </div>
+                <div class="col-4">
+                    <div class="display-6 fw-bold text-warning">{{ leave_workers }}</div>
+                    <small class="text-muted d-block">On Leave</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Performance -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3-fill me-2 text-warning"></i>Department Workload</h5>
+            <div class="vstack gap-2">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="text-muted small">Cutting</span>
+                    <span class="badge bg-primary rounded-pill px-2">{{ dept_cutting }} batches</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="text-muted small">Stitching</span>
+                    <span class="badge bg-primary rounded-pill px-2">{{ dept_stitching }} batches</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="text-muted small">Quality Check</span>
+                    <span class="badge bg-primary rounded-pill px-2">{{ dept_quality }} batches</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="text-muted small">Packing</span>
+                    <span class="badge bg-primary rounded-pill px-2">{{ dept_packing }} batches</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PRODUCTION COST OVERVIEW & CRITICAL ALERTS -->
+<div class="row g-4 mb-4">
+
+    <!-- Card 1: Production Cost Overview (Owner) -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                <span class="bg-success text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                    <i class="bi bi-cash-coin fs-5"></i>
+                </span>
+                Production Cost Overview
+            </h5>
+            <div class="vstack gap-3">
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-sun me-2 text-warning"></i>Today's Production Cost</span>
+                    <span class="fw-bold text-slate-800 fs-6">₹ N/A</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-boxes me-2 text-primary"></i>Material Cost</span>
+                    <span class="fw-bold text-slate-800 fs-6">₹ N/A</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-people-fill me-2 text-info"></i>Labour Cost</span>
+                    <span class="fw-bold text-slate-800 fs-6">₹ N/A</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-gear-fill me-2 text-secondary"></i>Machine Cost</span>
+                    <span class="fw-bold text-slate-800 fs-6">₹ N/A</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                    <span class="text-muted fw-semibold"><i class="bi bi-receipt me-2 text-danger"></i>Estimated Order Cost</span>
+                    <span class="fw-bold text-slate-800 fs-6">₹ N/A</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Critical Alerts (Owner) -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                <span class="bg-danger text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                </span>
+                Critical Alerts
+            </h5>
+            <div class="vstack gap-2">
+                {% if owner_critical_alerts %}
+                    {% for alert in owner_critical_alerts %}
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">{{ alert.icon }}</span>
+                        <span class="fw-semibold text-slate-800 small">{{ alert.message }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🔴</span><span class="fw-semibold text-slate-800 small">Urgent Orders — No urgent orders currently</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🟠</span><span class="fw-semibold text-slate-800 small">Low Inventory — No low stock items detected</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🟡</span><span class="fw-semibold text-slate-800 small">Machine Issues — All machines operational</span>
+                    </div>
+                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-3">
+                        <span class="fs-5">🔴</span><span class="fw-semibold text-slate-800 small">Production Delays — No delays recorded</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- AI Production Assistant & Actionable Insights -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary text-white p-2 rounded-3">
+                        <i class="bi bi-cpu-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">AI Production Assistant</h5>
+                        <small class="text-muted">Real-time floor recommendations & risk alerts</small>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#aiEstimatorModal">
+                        <i class="bi bi-calculator me-1"></i> AI Estimator Tools
+                    </button>
+                </div>
+            </div>
+
+            <div class="vstack gap-3">
+                {% for rec in ai_recommendations %}
+                <div class="p-3 rounded-3 bg-light border-start border-4 border-{{ rec.color }} shadow-sm">
+                    <div class="d-flex align-items-start gap-3">
+                        <i class="bi {{ rec.icon }} text-{{ rec.color }} fs-4"></i>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <h6 class="fw-bold mb-0 text-slate-800">{{ rec.title }}</h6>
+                                <span class="badge bg-{{ rec.color }}-subtle text-{{ rec.color }} text-uppercase" style="font-size:0.65rem;">{{ rec.category }}</span>
+                            </div>
+                            <p class="small text-muted mb-1">{{ rec.message }}</p>
+                            <div class="small fw-semibold text-primary"><i class="bi bi-arrow-right-circle me-1"></i>Action: {{ rec.action }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & System Status -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Quick Management</h5>
+            <div class="d-grid gap-2 mb-4">
+                <a href="{{ url_for('owner.orders_manage') }}" class="btn btn-primary btn-lg rounded-3 text-start d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-plus-circle me-2"></i> Create Garment Order</span>
+                    <i class="bi bi-chevron-right fs-6"></i>
+                </a>
+                <a href="{{ url_for('owner.inventory_manage') }}" class="btn btn-outline-secondary btn-lg rounded-3 text-start d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-box-seam me-2"></i> Restock Raw Material</span>
+                    <i class="bi bi-chevron-right fs-6"></i>
+                </a>
+                <a href="{{ url_for('owner.users_manage') }}" class="btn btn-outline-secondary btn-lg rounded-3 text-start d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-person-plus me-2"></i> Add Manager / Worker</span>
+                    <i class="bi bi-chevron-right fs-6"></i>
+                </a>
+                <a href="{{ url_for('owner.reports') }}" class="btn btn-outline-success btn-lg rounded-3 text-start d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-file-earmark-pdf me-2"></i> Export PDF / Excel Reports</span>
+                    <i class="bi bi-chevron-right fs-6"></i>
+                </a>
+            </div>
+
+            <h6 class="fw-bold text-muted mb-2 text-uppercase" style="font-size:0.75rem;">Active System Alerts</h6>
+            {% if active_alerts %}
+                <div class="vstack gap-2">
+                {% for alt in active_alerts %}
+                    <div class="p-2 rounded-2 bg-light border small d-flex align-items-center justify-content-between">
+                        <span class="text-truncate" style="max-width:200px;"><i class="bi bi-exclamation-circle text-danger me-1"></i> {{ alt.message }}</span>
+                        <span class="badge bg-danger text-uppercase">{{ alt.priority }}</span>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-muted small"><i class="bi bi-check-all text-success me-1"></i> All system parameters normal.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders Table -->
+<div class="glass-card p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Active Garment Orders</h5>
+        <a href="{{ url_for('owner.orders_manage') }}" class="btn btn-sm btn-outline-primary">View All Orders</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Garment Type</th>
+                    <th>Quantity</th>
+                    <th>Current Stage</th>
+                    <th>Progress</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ord in recent_orders %}
+                <tr>
+                    <td class="fw-bold">#{{ ord.id }}</td>
+                    <td><span class="badge bg-primary-subtle text-primary">{{ ord.garment_type }}</span></td>
+                    <td class="fw-bold">{{ "{:,}".format(ord.quantity) }} pcs</td>
+                    <td>
+                        <span class="badge bg-info-subtle text-info-emphasis px-2 py-1">{{ ord.current_stage }}</span>
+                    </td>
+                    <td style="width: 160px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-primary" style="width: {{ ord.progress_percentage }}%;"></div>
+                            </div>
+                            <small class="fw-semibold">{{ ord.progress_percentage }}%</small>
+                        </div>
+                    </td>
+                    <td>{{ ord.deadline.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        {% if ord.status == 'Delivered' %}
+                            <span class="badge bg-success">Delivered</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">In Production</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('main.track_order', tracking_id=ord.qr_info.tracking_id if ord.qr_info else ('TRK-' ~ (ord.id + 1000))) }}" target="_blank" class="btn btn-sm btn-light border" title="View Customer QR Tracking">
+                            <i class="bi bi-qr-code-scan"></i> Track
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Interactive AI Estimator Tools -->
+<div class="modal fade" id="aiEstimatorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-cpu-fill me-2"></i>AI Production & Material Calculators</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <ul class="nav nav-pills nav-fill mb-4" id="aiTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold" id="fabric-tab" data-bs-toggle="tab" data-bs-target="#fabric" type="button">
+                            <i class="bi bi-box-seam me-1"></i> Fabric Requirement
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" id="workforce-tab" data-bs-toggle="tab" data-bs-target="#workforce" type="button">
+                            <i class="bi bi-people me-1"></i> Workforce Requirement
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="aiTabContent">
+                    <!-- Fabric Estimator -->
+                    <div class="tab-pane fade show active" id="fabric">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Garment Category</label>
+                                <select id="aiGarmentType" class="form-select">
+                                    <option value="Shirts">Shirts (1.7m / unit)</option>
+                                    <option value="Denim">Denim Jeans (1.5m / unit)</option>
+                                    <option value="T-Shirts">T-Shirts (1.2m / unit)</option>
+                                    <option value="Dresses">Dresses (2.5m / unit)</option>
+                                    <option value="Jackets">Jackets (2.2m / unit)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Order Quantity (Units)</label>
+                                <input type="number" id="aiQuantity" class="form-control" value="500" min="1">
+                            </div>
+                        </div>
+                        <button type="button" id="calcFabricBtn" class="btn btn-primary mt-3"><i class="bi bi-lightning-charge me-1"></i> Predict Fabric Needed</button>
+                        <div id="aiFabricResult"></div>
+                    </div>
+
+                    <!-- Workforce Estimator -->
+                    <div class="tab-pane fade" id="workforce">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Garment Type</label>
+                                <select id="aiWfGarmentType" class="form-select">
+                                    <option value="Shirts">Shirts</option>
+                                    <option value="Denim">Denim Jeans</option>
+                                    <option value="T-Shirts">T-Shirts</option>
+                                    <option value="Dresses">Dresses</option>
+                                    <option value="Jackets">Jackets</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Quantity</label>
+                                <input type="number" id="aiWfQuantity" class="form-control" value="1000">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Target Days</label>
+                                <input type="number" id="aiWfDeadline" class="form-control" value="5">
+                            </div>
+                        </div>
+                        <button type="button" id="calcWorkforceBtn" class="btn btn-success mt-3"><i class="bi bi-people-fill me-1"></i> Predict Workforce Allocation</button>
+                        <div id="aiWorkforceResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% block title %}Quality Inspection – Worker | StitchTech ERP{% endblock %}
+{% block header_title %}Quality Inspection{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Section Headers ──────────────────────────────────────────── */
+.qc-section-label {
+    font-size: .65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .75rem;
+}
+.qc-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,.07);
+}
+
+/* ── Order Info Card ─────────────────────────────────────────── */
+.order-info-card {
+    background: rgba(2, 132, 199, 0.08);
+    border: 1px solid rgba(2, 132, 199, 0.25);
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem;
+}
+.order-info-item label { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #64748b; display: block; margin-bottom: .1rem; }
+.order-info-item span  { font-size: .92rem; font-weight: 600; color: #e2e8f0; }
+
+/* ── Number Inputs ───────────────────────────────────────────── */
+.qc-number-group { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 1rem 1.2rem; }
+.qc-number-group label { font-size: .78rem; font-weight: 600; color: #94a3b8; margin-bottom: .4rem; }
+.qc-number-group input.form-control {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+    color: #f8fafc;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+    padding: .6rem;
+    transition: border-color .2s;
+}
+.qc-number-group input.form-control:focus {
+    background: rgba(2,132,199,.08);
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2,132,199,.15);
+    color: #38bdf8;
+    outline: none;
+}
+
+/* ── Result Buttons ──────────────────────────────────────────── */
+.result-btn-group { display: flex; gap: .75rem; flex-wrap: wrap; }
+.result-radio-btn { display: none; }
+.result-label {
+    flex: 1;
+    min-width: 130px;
+    border-radius: 12px;
+    padding: .9rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.03);
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: .85rem;
+    transition: all .2s ease;
+    user-select: none;
+}
+.result-label:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); color: #e2e8f0; }
+#result_passed:checked   ~ .result-btn-group .label-passed,
+.result-radio-btn[value="Passed"]:checked + .result-label          { border-color:#10b981; background:rgba(16,185,129,.15); color:#34d399; }
+#result_rework:checked   ~ .result-btn-group .label-rework         { border-color:#f59e0b; background:rgba(245,158,11,.15);  color:#fbbf24; }
+#result_rejected:checked ~ .result-btn-group .label-rejected       { border-color:#ef4444; background:rgba(239,68,68,.15);   color:#f87171; }
+
+.result-label.selected-passed   { border-color:#10b981 !important; background:rgba(16,185,129,.15) !important; color:#34d399 !important; }
+.result-label.selected-rework   { border-color:#f59e0b !important; background:rgba(245,158,11,.15) !important;  color:#fbbf24 !important; }
+.result-label.selected-rejected { border-color:#ef4444 !important; background:rgba(239,68,68,.15) !important;   color:#f87171 !important; }
+
+/* ── Recent Table ────────────────────────────────────────────── */
+.qc-table th { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:#64748b; font-weight:600; border-bottom:1px solid #1e293b; }
+.qc-table td { font-size:.83rem; color:#cbd5e1; vertical-align:middle; border-bottom:1px solid rgba(255,255,255,.04); }
+.qc-table tr:hover td { background:rgba(255,255,255,.02); }
+.badge-passed   { background:rgba(16,185,129,.15); color:#34d399; border:1px solid rgba(16,185,129,.3); }
+.badge-rework   { background:rgba(245,158,11,.15);  color:#fbbf24; border:1px solid rgba(245,158,11,.3); }
+.badge-rejected { background:rgba(239,68,68,.15);   color:#f87171; border:1px solid rgba(239,68,68,.3); }
+
+/* ── Order Selector ──────────────────────────────────────────── */
+.order-select-pill {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 99px;
+    padding: .35rem .9rem;
+    font-size: .8rem; font-weight: 500; color: #94a3b8;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+}
+.order-select-pill:hover,
+.order-select-pill.active {
+    border-color: #0284c7; background: rgba(2,132,199,.15); color: #38bdf8;
+}
+
+@keyframes fadeSlideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.anim-in{animation:fadeSlideUp .45s ease both}
+.anim-d1{animation-delay:.05s}.anim-d2{animation-delay:.1s}.anim-d3{animation-delay:.15s}
+.anim-d4{animation-delay:.2s}.anim-d5{animation-delay:.25s}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 960px; margin: 0 auto;">
+
+    <!-- Back -->
+    <div class="mb-4">
+        <a href="{{ url_for('worker.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to My Tasks
+        </a>
+    </div>
+
+    <!-- Quality Inspection Summary Cards (Tasks 4, 5, 8) -->
+    <div class="row g-3 mb-4 anim-in anim-d1">
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small text-uppercase fw-semibold">Total Inspected</span>
+                    <i class="bi bi-clipboard2-data-fill text-info fs-5"></i>
+                </div>
+                <div class="h3 fw-bold text-info mb-0">{{ total_inspected }}</div>
+                <small class="text-muted" style="font-size: 0.72rem;">Units across all orders</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small text-uppercase fw-semibold">Passed</span>
+                    <i class="bi bi-patch-check-fill text-success fs-5"></i>
+                </div>
+                <div class="h3 fw-bold text-success mb-0">{{ total_passed }}</div>
+                <small class="text-muted" style="font-size: 0.72rem;">Pass rate: {{ pass_rate }}%</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small text-uppercase fw-semibold">Defective</span>
+                    <i class="bi bi-x-octagon-fill text-danger fs-5"></i>
+                </div>
+                <div class="h3 fw-bold text-danger mb-0">{{ total_defective }}</div>
+                <small class="text-muted" style="font-size: 0.72rem;">Defective units</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small text-uppercase fw-semibold">Rework Required</span>
+                    <i class="bi bi-arrow-repeat text-warning fs-5"></i>
+                </div>
+                <div class="h3 fw-bold text-warning mb-0">{{ total_rework }}</div>
+                <small class="text-muted" style="font-size: 0.72rem;">Flagged for rework</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- ── LEFT: Form ─────────────────────────────────────── -->
+        <div class="col-lg-7">
+
+            <!-- Order Selector -->
+            {% if orders_in_qc %}
+            <div class="glass-card p-4 mb-4 anim-in anim-d1">
+                <div class="qc-section-label"><i class="bi bi-bag-check text-info"></i> Select Order to Inspect</div>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for order in orders_in_qc %}
+                    <a href="{{ url_for('worker.quality_inspect', order_id=order.id) }}"
+                       class="order-select-pill {% if selected_order and selected_order.id == order.id %}active{% endif %}">
+                        <i class="bi bi-circle-fill" style="font-size:.4rem; color:{% if selected_order and selected_order.id == order.id %}#38bdf8{% else %}#475569{% endif %};"></i>
+                        #{{ order.id }} — {{ order.garment_type }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Order Info Card -->
+            {% if selected_order %}
+            <div class="order-info-card mb-4 anim-in anim-d2">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div style="width:36px;height:36px;background:rgba(2,132,199,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-bag-check-fill text-info"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-white" style="font-family:'Outfit',sans-serif;">Order #{{ selected_order.id }}</div>
+                        <small class="text-muted">Selected for Inspection</small>
+                    </div>
+                    <span class="badge bg-info bg-opacity-20 text-info ms-auto border border-info border-opacity-25 rounded-pill px-3">{{ selected_order.current_stage }}</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6 order-info-item">
+                        <label>Garment Type</label>
+                        <span>{{ selected_order.garment_type }}</span>
+                    </div>
+                    <div class="col-6 order-info-item">
+                        <label>Order Quantity</label>
+                        <span>{{ "{:,}".format(selected_order.quantity) }} units</span>
+                    </div>
+                    <div class="col-6 order-info-item">
+                        <label>Current Stage</label>
+                        <span class="text-info">{{ selected_order.current_stage }}</span>
+                    </div>
+                    <div class="col-6 order-info-item">
+                        <label>Progress</label>
+                        <span>{{ selected_order.progress_percentage }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Inspection Form ──────────────────────────── -->
+            <form method="POST" id="inspectionForm" class="anim-in anim-d3">
+                <input type="hidden" name="order_id" value="{{ selected_order.id }}">
+                <input type="hidden" name="submit_inspection" value="1">
+                <input type="hidden" name="result" id="resultHidden" value="Passed">
+
+                <!-- Inspection Quantity -->
+                <div class="glass-card p-4 mb-3">
+                    <div class="qc-section-label"><i class="bi bi-123 text-info"></i> Inspection Quantity</div>
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <div class="qc-number-group text-center">
+                                <label>Inspected</label>
+                                <input type="number" class="form-control" name="inspected_qty" id="inspected_qty"
+                                       min="0" max="{{ selected_order.quantity }}" value="0" required>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="qc-number-group text-center">
+                                <label style="color:#34d399;">Passed</label>
+                                <input type="number" class="form-control" name="passed_qty" id="passed_qty"
+                                       min="0" value="0" required style="color:#34d399;">
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="qc-number-group text-center">
+                                <label style="color:#f87171;">Defective</label>
+                                <input type="number" class="form-control" name="defective_qty" id="defective_qty"
+                                       min="0" value="0" style="color:#f87171;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Defect Information -->
+                <div class="glass-card p-4 mb-3">
+                    <div class="qc-section-label"><i class="bi bi-bug-fill text-danger"></i> Defect Information</div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted" style="font-size:.82rem;">Defect Type</label>
+                        <select class="form-select" name="defect_type"
+                                style="background:#111827;border-color:#334155;color:#e2e8f0;border-radius:10px;">
+                            <option value="">— None / No Defect —</option>
+                            <option>Stitching Defect</option>
+                            <option>Fabric Defect</option>
+                            <option>Measurement/Size Issue</option>
+                            <option>Color Issue</option>
+                            <option>Button/Zipper Issue</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label text-muted" style="font-size:.82rem;">Remarks</label>
+                        <textarea class="form-control" name="remarks" rows="3"
+                                  style="background:#111827;border-color:#334155;color:#e2e8f0;border-radius:10px;resize:none;"
+                                  placeholder="Describe the defect, location, or any relevant notes..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Final Result -->
+                <div class="glass-card p-4 mb-4">
+                    <div class="qc-section-label"><i class="bi bi-flag-fill text-warning"></i> Final Result</div>
+                    <div class="result-btn-group" id="resultGroup">
+                        <div class="result-label label-passed selected-passed" id="btn_passed" onclick="setResult('Passed', this)">
+                            <i class="bi bi-check-circle-fill d-block mb-1 fs-4" style="color:#34d399;"></i>
+                            <div>Passed</div>
+                        </div>
+                        <div class="result-label label-rework" id="btn_rework" onclick="setResult('Rework Required', this)">
+                            <i class="bi bi-arrow-repeat d-block mb-1 fs-4" style="color:#fbbf24;"></i>
+                            <div>Rework Required</div>
+                        </div>
+                        <div class="result-label label-rejected" id="btn_rejected" onclick="setResult('Rejected', this)">
+                            <i class="bi bi-x-octagon-fill d-block mb-1 fs-4" style="color:#f87171;"></i>
+                            <div>Rejected</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-2 rounded" id="resultInfoBadge"
+                         style="background:rgba(16,185,129,.07); border:1px solid rgba(16,185,129,.2); font-size:.8rem; color:#34d399;">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <span id="resultInfoText">This batch passes quality standards and will proceed to Packing.</span>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold" style="font-size:1rem;">
+                    <i class="bi bi-clipboard2-check-fill me-2"></i> Submit Inspection Record
+                </button>
+            </form>
+            {% else %}
+            <div class="glass-card p-5 text-center text-muted anim-in anim-d2">
+                <i class="bi bi-clipboard2-x fs-1 d-block mb-3"></i>
+                <h6 class="text-light">No orders currently in Quality Check stage</h6>
+                <p class="small">Orders will appear here when they reach the Quality Check stage.</p>
+                <a href="{{ url_for('worker.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-pill mt-2">
+                    Back to Dashboard
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ── RIGHT: Recent Inspections ─────────────────────── -->
+        <div class="col-lg-5 anim-in anim-d4">
+            <div class="glass-card p-4">
+                <h6 class="fw-bold text-white mb-3 brand-font d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-info"></i> Recent Inspections
+                </h6>
+                {% if recent_inspections %}
+                <div class="vstack gap-2">
+                    {% for insp in recent_inspections %}
+                    <div class="p-3 rounded-3" style="background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="fw-semibold text-light" style="font-size:.85rem;">
+                                Order #{{ insp.order_id }}
+                                <span class="text-muted fw-normal">· {{ insp.order.garment_type if insp.order else 'Garment' }}</span>
+                            </span>
+                            {% if insp.result == 'Passed' %}
+                            <span class="badge badge-passed rounded-pill" style="font-size:.7rem;"><i class="bi bi-check-circle-fill me-1"></i>Passed</span>
+                            {% elif insp.result == 'Rework Required' %}
+                            <span class="badge badge-rework rounded-pill" style="font-size:.7rem;"><i class="bi bi-arrow-repeat me-1"></i>Rework</span>
+                            {% else %}
+                            <span class="badge badge-rejected rounded-pill" style="font-size:.7rem;"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex gap-3 mt-1">
+                            <span style="font-size:.75rem; color:#94a3b8;">
+                                <i class="bi bi-clipboard2-data me-1 text-info"></i>{{ insp.inspected_qty }} insp.
+                            </span>
+                            <span style="font-size:.75rem; color:#34d399;">
+                                <i class="bi bi-check2 me-1"></i>{{ insp.passed_qty }} pass
+                            </span>
+                            {% if insp.defective_qty > 0 %}
+                            <span style="font-size:.75rem; color:#f87171;">
+                                <i class="bi bi-x me-1"></i>{{ insp.defective_qty }} defect
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% if insp.defect_type %}
+                        <div class="mt-1">
+                            <span class="badge bg-dark border border-secondary text-muted" style="font-size:.68rem;">{{ insp.defect_type }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="mt-1" style="font-size:.72rem; color:#475569;">
+                            <i class="bi bi-person me-1"></i>{{ insp.inspector_name or 'Unknown' }}
+                            &nbsp;·&nbsp;
+                            <i class="bi bi-calendar3 me-1"></i>{{ insp.inspected_at.strftime('%d %b %Y') }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-clipboard2-x fs-2 d-block mb-2"></i>
+                    <small>No inspections recorded yet</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const RESULT_MESSAGES = {
+    'Passed':          'This batch passes quality standards and will proceed to Packing.',
+    'Rework Required': 'This batch has defects and must be sent back for correction.',
+    'Rejected':        'This batch is rejected and cannot proceed. Floor alert will be raised.'
+};
+const RESULT_STYLES = {
+    'Passed':          'background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);color:#34d399;',
+    'Rework Required': 'background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);color:#fbbf24;',
+    'Rejected':        'background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);color:#f87171;'
+};
+
+function setResult(val, el) {
+    document.getElementById('resultHidden').value = val;
+    document.querySelectorAll('.result-label').forEach(l => {
+        l.classList.remove('selected-passed','selected-rework','selected-rejected');
+    });
+    if (val === 'Passed')           el.classList.add('selected-passed');
+    else if (val === 'Rework Required') el.classList.add('selected-rework');
+    else                            el.classList.add('selected-rejected');
+
+    const badge = document.getElementById('resultInfoBadge');
+    badge.style.cssText = RESULT_STYLES[val];
+    document.getElementById('resultInfoText').textContent = RESULT_MESSAGES[val];
+}
+
+// Auto-compute defective = inspected - passed
+document.getElementById('inspected_qty')?.addEventListener('input', autoDefective);
+document.getElementById('passed_qty')?.addEventListener('input', autoDefective);
+function autoDefective() {
+    const ins = parseInt(document.getElementById('inspected_qty').value) || 0;
+    const pas = parseInt(document.getElementById('passed_qty').value) || 0;
+    const def = Math.max(0, ins - pas);
+    document.getElementById('defective_qty').value = def;
+    // Auto suggest result
+    if (def === 0 && ins > 0) setResult('Passed', document.getElementById('btn_passed'));
+    else if (def > 0 && def < ins) setResult('Rework Required', document.getElementById('btn_rework'));
+}
+
+// Client-side validation ensuring:
+// inspected_qty >= 0, passed_qty >= 0, defective_qty >= 0, passed_qty + defective_qty <= inspected_qty (Tasks 2, 3)
+document.getElementById('inspectionForm')?.addEventListener('submit', function(e) {
+    const ins = parseInt(document.getElementById('inspected_qty').value);
+    const pas = parseInt(document.getElementById('passed_qty').value);
+    const def = parseInt(document.getElementById('defective_qty').value);
+
+    if (isNaN(ins) || ins <= 0) {
+        e.preventDefault();
+        alert('Please enter an inspected quantity greater than 0.');
+        return false;
+    }
+    if (isNaN(pas) || pas < 0 || isNaN(def) || def < 0) {
+        e.preventDefault();
+        alert('Passed and Defective quantities must be non-negative (>= 0).');
+        return false;
+    }
+    if (pas + def > ins) {
+        e.preventDefault();
+        alert(`Passed quantity (${pas}) + Defective quantity (${def}) cannot exceed Inspected quantity (${ins}).`);
+        return false;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}AI Analytics & Insights - StitchTech ERP{% endblock %}
+{% block header_title %}AI Production Analytics & Performance Metrics{% endblock %}
+
+{% block content %}
+<div class="glass-card p-4 mb-4 overflow-hidden position-relative text-white" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(2, 132, 199, 0.85)), url('{{ url_for('static', filename='images/ai/smart_factory_ai.jpg') }}') center/cover no-repeat;">
+    <div class="position-relative" style="z-index: 2;">
+        <h4 class="fw-bold mb-1 brand-font"><i class="bi bi-cpu-fill me-2 text-primary"></i>Smart Factory AI Analytics & Predictions</h4>
+        <p class="text-slate-200 small mb-0">Real-time data visualization across revenue forecasting, stage bottlenecks, and machinery utilization.</p>
+    </div>
+</div>
+<div class="row g-4 mb-4">
+    <!-- Chart 1: Monthly Orders & Revenue Trend -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Orders & Revenue Trends</h5>
+                <span class="badge bg-primary-subtle text-primary">Real-time Forecast</span>
+            </div>
+            <div style="height: 320px;">
+                <canvas id="ordersChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Machine Utilization Doughnut -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill me-2 text-warning"></i>Machinery Utilization Rate</h5>
+            <div class="d-flex align-items-center justify-content-center" style="height: 260px;">
+                <canvas id="machineChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Chart 3: Department Bottleneck Bar Chart -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-bar-chart-steps me-2 text-indigo"></i>Production Stage Workload Distribution</h5>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="stageChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 4: Delay Reasons Bar/Pie Chart -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-danger"></i>Most Common Delay Reasons</h5>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="delayChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

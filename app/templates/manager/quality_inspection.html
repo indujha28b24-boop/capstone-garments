@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}Quality Control Dashboard – Manager | StitchTech ERP{% endblock %}
+{% block header_title %}Quality Control Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.qc-ring-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.qc-ring { position:relative; width:160px; height:160px; }
+.qc-ring svg { transform:rotate(-90deg); }
+.qc-ring circle.bg { fill:none; stroke:rgba(255,255,255,.08); stroke-width:14; }
+.qc-ring circle.fg { fill:none; stroke-width:14; stroke-linecap:round; stroke-dasharray:440; stroke-dashoffset:440; transition:stroke-dashoffset 1.4s cubic-bezier(.47,1.64,.41,.8); }
+.qc-ring circle.fg.green { stroke:#10b981; }
+.qc-ring circle.fg.amber { stroke:#f59e0b; }
+.qc-ring circle.fg.red   { stroke:#ef4444; }
+.qc-ring-label { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.qc-ring-pct { font-size:1.9rem; font-weight:700; color:#f8fafc; font-family:'Outfit',sans-serif; }
+.qc-ring-sub { font-size:.6rem; text-transform:uppercase; letter-spacing:1px; color:#94a3b8; font-weight:600; text-align:center; line-height:1.3; }
+.qc-stat-card { border-radius:16px; padding:1.4rem 1.5rem; background:var(--card-bg); border:1px solid var(--border-color); box-shadow:var(--glass-shadow); transition:transform .2s ease,box-shadow .2s ease; overflow:hidden; position:relative; }
+.qc-stat-card:hover { transform:translateY(-3px); box-shadow:0 20px 40px rgba(0,0,0,.4); }
+.qc-stat-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; }
+.qc-stat-val   { font-size:2.2rem; font-weight:700; line-height:1.1; color:#f8fafc; font-family:'Outfit',sans-serif; }
+.qc-stat-label { font-size:.78rem; font-weight:500; text-transform:uppercase; letter-spacing:.06em; color:#94a3b8; margin-top:.15rem; }
+.defect-bar-wrap { background:rgba(255,255,255,.04); border-radius:10px; padding:1rem 1.2rem; }
+.defect-bar-label { font-size:.82rem; font-weight:500; color:#cbd5e1; }
+.defect-bar-track { height:8px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden; }
+.defect-bar-fill  { height:100%; border-radius:99px; width:0%; transition:width 1.1s cubic-bezier(.47,1.64,.41,.8); background:linear-gradient(90deg,#f59e0b,#ef4444); }
+.defect-bar-count { font-size:.78rem; font-weight:700; color:#f59e0b; min-width:24px; text-align:right; }
+.flow-box { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:12px; padding:.7rem 1.2rem; font-size:.82rem; font-weight:600; color:#e2e8f0; text-align:center; white-space:nowrap; }
+.flow-box.active { border-color:#0284c7; background:rgba(2,132,199,.12); color:#38bdf8; }
+.flow-box.pass   { border-color:#10b981; background:rgba(16,185,129,.1);  color:#34d399; }
+.flow-box.warn   { border-color:#f59e0b; background:rgba(245,158,11,.1);  color:#fbbf24; }
+.flow-arrow { color:#475569; font-size:1rem; text-align:center; margin:.25rem 0; }
+.qc-table th { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:#64748b; font-weight:600; border-bottom:1px solid #1e293b; }
+.qc-table td { font-size:.83rem; color:#cbd5e1; vertical-align:middle; border-bottom:1px solid rgba(255,255,255,.04); }
+.qc-table tr:hover td { background:rgba(255,255,255,.02); }
+.badge-passed   { background:rgba(16,185,129,.15); color:#34d399; border:1px solid rgba(16,185,129,.3); }
+.badge-rework   { background:rgba(245,158,11,.15);  color:#fbbf24; border:1px solid rgba(245,158,11,.3); }
+.badge-rejected { background:rgba(239,68,68,.15);   color:#f87171; border:1px solid rgba(239,68,68,.3); }
+@keyframes fadeSlideUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+.anim-in{animation:fadeSlideUp .5s ease both}
+.anim-d1{animation-delay:.05s} .anim-d2{animation-delay:.12s} .anim-d3{animation-delay:.19s}
+.anim-d4{animation-delay:.26s} .anim-d5{animation-delay:.33s}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width:1150px; margin:0 auto;">
+
+    <!-- Back + Worker Link -->
+    <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <a href="{{ url_for('manager.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Floor Control
+        </a>
+    </div>
+
+    <!-- ── KPI Stat Cards ──────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3 anim-in anim-d1">
+            <div class="qc-stat-card">
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div>
+                        <div class="qc-stat-val text-info">{{ total_inspected }}</div>
+                        <div class="qc-stat-label">Total Inspected</div>
+                    </div>
+                    <div class="qc-stat-icon" style="background:rgba(6,182,212,.15);color:#22d3ee;">
+                        <i class="bi bi-clipboard2-data-fill"></i>
+                    </div>
+                </div>
+                <small class="text-muted" style="font-size:.72rem;">Units across all orders</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 anim-in anim-d2">
+            <div class="qc-stat-card">
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div>
+                        <div class="qc-stat-val" style="color:#34d399;">{{ total_passed }}</div>
+                        <div class="qc-stat-label">Passed</div>
+                    </div>
+                    <div class="qc-stat-icon" style="background:rgba(16,185,129,.15);color:#34d399;">
+                        <i class="bi bi-patch-check-fill"></i>
+                    </div>
+                </div>
+                <small class="text-muted" style="font-size:.72rem;">Units cleared for packing</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 anim-in anim-d3">
+            <div class="qc-stat-card">
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div>
+                        <div class="qc-stat-val" style="color:#fbbf24;">{{ total_rework }}</div>
+                        <div class="qc-stat-label">Rework Required</div>
+                    </div>
+                    <div class="qc-stat-icon" style="background:rgba(245,158,11,.15);color:#fbbf24;">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+                </div>
+                <small class="text-muted" style="font-size:.72rem;">Sessions flagged for rework</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 anim-in anim-d4">
+            <div class="qc-stat-card">
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div>
+                        <div class="qc-stat-val" style="color:#f87171;">{{ total_rejected }}</div>
+                        <div class="qc-stat-label">Rejected</div>
+                    </div>
+                    <div class="qc-stat-icon" style="background:rgba(239,68,68,.15);color:#f87171;">
+                        <i class="bi bi-x-octagon-fill"></i>
+                    </div>
+                </div>
+                <small class="text-muted" style="font-size:.72rem;">Sessions marked rejected</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Ring + Defect + Flow ───────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <!-- Pass Rate Ring -->
+        <div class="col-md-3 anim-in anim-d2">
+            <div class="glass-card p-4 h-100 d-flex flex-column align-items-center justify-content-center text-center">
+                <div class="qc-ring mb-3" id="passRateRing">
+                    <svg viewBox="0 0 160 160" width="160" height="160">
+                        <circle class="bg" cx="80" cy="80" r="70"/>
+                        <circle class="fg {% if pass_rate >= 80 %}green{% elif pass_rate >= 50 %}amber{% else %}red{% endif %}"
+                                cx="80" cy="80" r="70" id="ringArc"/>
+                    </svg>
+                    <div class="qc-ring-label">
+                        <span class="qc-ring-pct" id="ringPct">0%</span>
+                        <span class="qc-ring-sub">Quality<br>Pass Rate</span>
+                    </div>
+                </div>
+                <span class="badge rounded-pill px-3 py-1 {% if pass_rate >= 80 %}bg-success{% elif pass_rate >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %}" style="font-size:.78rem;">
+                    {% if pass_rate >= 80 %}<i class="bi bi-shield-check me-1"></i>Excellent
+                    {% elif pass_rate >= 50 %}<i class="bi bi-exclamation-triangle-fill me-1"></i>Needs Attention
+                    {% else %}<i class="bi bi-x-circle-fill me-1"></i>Critical{% endif %}
+                </span>
+                <p class="text-muted mt-2 mb-0" style="font-size:.72rem;">Passed ÷ Inspected × 100</p>
+            </div>
+        </div>
+
+        <!-- Defect Breakdown -->
+        <div class="col-md-5 anim-in anim-d3">
+            <div class="glass-card p-4 h-100">
+                <h6 class="fw-bold text-white mb-3 brand-font d-flex align-items-center gap-2">
+                    <i class="bi bi-bug-fill text-danger"></i> Defect Breakdown
+                </h6>
+                <div class="vstack gap-2">
+                    {% for defect, count in defect_breakdown.items() %}
+                    <div class="defect-bar-wrap">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="defect-bar-label">{{ defect }}</span>
+                            <span class="defect-bar-count">{{ count }}</span>
+                        </div>
+                        <div class="defect-bar-track">
+                            <div class="defect-bar-fill" data-pct="{{ ((count / max_defect) * 100)|round|int if max_defect > 0 else 0 }}"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if defect_breakdown.values()|sum == 0 %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-shield-check fs-2 text-success d-block mb-2"></i>
+                    <small>No defects recorded yet</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Flow -->
+        <div class="col-md-4 anim-in anim-d4">
+            <div class="glass-card p-4 h-100">
+                <h6 class="fw-bold text-white mb-3 brand-font d-flex align-items-center gap-2">
+                    <i class="bi bi-diagram-3-fill text-info"></i> Quality Flow
+                </h6>
+                <div class="mb-3">
+                    <div class="flow-box active"><i class="bi bi-scissors me-2"></i>Stitching</div>
+                    <div class="flow-arrow"><i class="bi bi-arrow-down"></i></div>
+                    <div class="flow-box active"><i class="bi bi-clipboard2-pulse me-2"></i>Quality Inspection</div>
+                    <div class="flow-arrow"><i class="bi bi-arrow-down"></i></div>
+                    <div class="flow-box pass"><i class="bi bi-check-circle-fill me-2"></i>Passed → Packing</div>
+                </div>
+                <hr class="border-secondary my-2">
+                <div>
+                    <div class="flow-box active"><i class="bi bi-clipboard2-pulse me-2"></i>Quality Inspection</div>
+                    <div class="flow-arrow"><i class="bi bi-arrow-down"></i></div>
+                    <div class="flow-box warn"><i class="bi bi-arrow-repeat me-2"></i>Rework Required</div>
+                    <div class="flow-arrow"><i class="bi bi-arrow-down"></i></div>
+                    <div class="flow-box active"><i class="bi bi-search me-2"></i>Re-Inspection</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Recent Inspections Table ──────────────────────────── -->
+    <div class="glass-card p-4 anim-in anim-d5">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="fw-bold text-white mb-0 brand-font d-flex align-items-center gap-2">
+                <i class="bi bi-table text-info"></i> Recent Quality Inspections
+            </h6>
+            <span class="badge bg-secondary rounded-pill px-3">{{ inspections|length }} records</span>
+        </div>
+        {% if inspections %}
+        <div class="table-responsive">
+            <table class="table qc-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Order</th><th>Garment</th><th>Inspected</th>
+                        <th>Passed</th><th>Defective</th><th>Defect Type</th>
+                        <th>Result</th><th>Inspector</th><th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insp in inspections %}
+                    <tr>
+                        <td><span class="badge bg-primary-subtle text-info">#{{ insp.order_id }}</span></td>
+                        <td><span class="fw-semibold text-light">{{ insp.order.garment_type }}</span></td>
+                        <td>{{ insp.inspected_qty }}</td>
+                        <td><span style="color:#34d399;">{{ insp.passed_qty }}</span></td>
+                        <td><span style="color:{% if insp.defective_qty > 0 %}#f87171{% else %}#94a3b8{% endif %};">{{ insp.defective_qty }}</span></td>
+                        <td>
+                            {% if insp.defect_type %}<span class="badge bg-dark border border-secondary text-muted" style="font-size:.7rem;">{{ insp.defect_type }}</span>
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if insp.result == 'Passed' %}<span class="badge badge-passed rounded-pill px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i>Passed</span>
+                            {% elif insp.result == 'Rework Required' %}<span class="badge badge-rework rounded-pill px-2 py-1"><i class="bi bi-arrow-repeat me-1"></i>Rework</span>
+                            {% else %}<span class="badge badge-rejected rounded-pill px-2 py-1"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>{% endif %}
+                        </td>
+                        <td><span class="text-muted">{{ insp.inspector_name or '—' }}</span></td>
+                        <td><span class="text-muted" style="font-size:.75rem;">{{ insp.inspected_at.strftime('%d %b %Y') }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-clipboard2-x fs-1 text-muted d-block mb-2"></i>
+            <h6 class="text-light mb-1">No Inspections Yet</h6>
+            <p class="small mb-0">Quality Check workers will submit inspection records here.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const pct = {{ pass_rate }};
+    const circumference = 2 * Math.PI * 70;
+    const arc = document.getElementById('ringArc');
+    const pctLabel = document.getElementById('ringPct');
+    if (arc) {
+        arc.style.strokeDasharray = circumference;
+        arc.style.strokeDashoffset = circumference;
+        setTimeout(() => { arc.style.strokeDashoffset = circumference - (pct / 100) * circumference; }, 200);
+    }
+    if (pctLabel) {
+        let current = 0;
+        const start = performance.now();
+        function step(ts) {
+            const elapsed = ts - start;
+            const progress = Math.min(elapsed / 1400, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            pctLabel.textContent = (Math.round(eased * pct * 10) / 10).toFixed(1) + '%';
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        setTimeout(() => requestAnimationFrame(step), 200);
+    }
+    document.querySelectorAll('.defect-bar-fill').forEach(bar => {
+        setTimeout(() => { bar.style.width = (bar.dataset.pct || 0) + '%'; }, 300);
+    });
+});
+</script>
+{% endblock %}

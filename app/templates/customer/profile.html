@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Settings - StitchTech ERP{% endblock %}
+{% block header_title %}Account Profile Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Profile Card Summary -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 text-center mb-4">
+            <div class="bg-primary text-white rounded-circle p-3 d-inline-block shadow mb-3" style="width: 80px; height: 80px;">
+                <i class="bi bi-person fs-1"></i>
+            </div>
+            <h5 class="fw-bold mb-1 text-slate-800">{{ current_user.company_name or 'My Company' }}</h5>
+            <span class="badge bg-primary-subtle text-primary text-uppercase" style="font-size:0.7rem;">Verified Customer</span>
+            
+            <div class="border-top mt-4 pt-3 text-start small text-muted">
+                <div><i class="bi bi-envelope me-2"></i>{{ current_user.email }}</div>
+                <div class="mt-2"><i class="bi bi-shield-check me-2"></i>GST: {{ current_user.gst_number or 'Not Configured' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Details Form -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-person-gear text-primary me-2"></i>Update Company Profile</h5>
+            <form action="{{ url_for('customer.profile') }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-slate-700">Company Name</label>
+                        <input type="text" name="company_name" class="form-control" value="{{ current_user.company_name or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-slate-700">Contact Person Name</label>
+                        <input type="text" name="contact_name" class="form-control" value="{{ current_user.contact_name or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-slate-700">Phone Contact</label>
+                        <input type="text" name="phone" class="form-control" value="{{ current_user.phone or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-slate-700">GST Registration Number</label>
+                        <input type="text" name="gst_number" class="form-control" value="{{ current_user.gst_number or '' }}">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-slate-700">Delivery Address</label>
+                        <textarea name="delivery_address" class="form-control" rows="3" required>{{ current_user.delivery_address or '' }}</textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-slate-700">Billing Address</label>
+                        <textarea name="billing_address" class="form-control" rows="3" required>{{ current_user.billing_address or '' }}</textarea>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="col-12 border-top mt-4 pt-3">
+                        <h6 class="fw-bold mb-3 text-slate-800"><i class="bi bi-shield-lock text-primary me-2"></i>Change Password</h6>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-slate-700">New Password (leave blank to keep current)</label>
+                        <input type="password" name="new_password" class="form-control" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold shadow-sm">
+                        <i class="bi bi-save me-1"></i> Save Changes & Updates
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

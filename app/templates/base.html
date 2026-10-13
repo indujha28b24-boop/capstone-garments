@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StitchTech ERP - AI Garment Manufacturing Platform{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom ERP Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    {% if current_user.is_authenticated %}
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header d-flex align-items-center justify-content-between">
+                <a href="/" class="text-white text-decoration-none d-flex align-items-center gap-2">
+                    <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:38px; height:38px;">
+                        <i class="bi bi-scissors fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0 brand-font text-white" style="font-size: 0.95rem;">FAB FORA</h5>
+                        <small class="text-muted text-uppercase" style="font-size:0.55rem; letter-spacing: 0.5px;">INTERNATIONAL</small>
+                    </div>
+                </a>
+            </div>
+
+            <div class="sidebar-nav">
+                {% if current_user.role == 'owner' %}
+                <div class="px-3 py-2 text-uppercase text-muted fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Executive Portal</div>
+                <a href="{{ url_for('owner.dashboard') }}" class="sidebar-link {% if request.endpoint == 'owner.dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('owner.orders_manage') }}" class="sidebar-link {% if request.endpoint == 'owner.orders_manage' %}active{% endif %}">
+                    <i class="bi bi-bag-check-fill"></i> Garment Orders
+                </a>
+                <a href="{{ url_for('owner.online_orders') }}" class="sidebar-link {% if request.endpoint in ['owner.online_orders', 'owner.online_order_detail'] %}active{% endif %}">
+                    <i class="bi bi-cart-plus-fill text-warning"></i> Online Orders
+                </a>
+                <a href="{{ url_for('owner.inventory_manage') }}" class="sidebar-link {% if request.endpoint == 'owner.inventory_manage' %}active{% endif %}">
+                    <i class="bi bi-box-seam-fill"></i> Smart Inventory
+                </a>
+                <a href="{{ url_for('owner.machines_manage') }}" class="sidebar-link {% if request.endpoint == 'owner.machines_manage' %}active{% endif %}">
+                    <i class="bi bi-gear-wide-connected"></i> Machine Monitor
+                </a>
+                <a href="{{ url_for('owner.users_manage') }}" class="sidebar-link {% if request.endpoint == 'owner.users_manage' %}active{% endif %}">
+                    <i class="bi bi-people-fill"></i> User Directory
+                </a>
+                <a href="{{ url_for('manager.digital_twin_3d') }}" class="sidebar-link {% if request.endpoint == 'manager.digital_twin_3d' %}active{% endif %}">
+                    <i class="bi bi-box-fill text-info"></i> 3D Digital Twin
+                </a>
+                <a href="{{ url_for('owner.analytics') }}" class="sidebar-link {% if request.endpoint == 'owner.analytics' %}active{% endif %}">
+                    <i class="bi bi-bar-chart-line-fill"></i> AI Analytics
+                </a>
+                <a href="{{ url_for('owner.fashion_trend_intelligence') }}" class="sidebar-link {% if request.endpoint == 'owner.fashion_trend_intelligence' %}active{% endif %}">
+                    <i class="bi bi-magic text-warning"></i> Fashion AI Trends
+                </a>
+                <a href="{{ url_for('owner.reports') }}" class="sidebar-link {% if request.endpoint == 'owner.reports' %}active{% endif %}">
+                    <i class="bi bi-file-earmark-pdf-fill"></i> PDF & Excel Reports
+                </a>
+                <a href="{{ url_for('owner.billing_manage') }}" class="sidebar-link {% if request.endpoint in ['owner.billing_manage', 'owner.billing_view'] %}active{% endif %}">
+                    <i class="bi bi-receipt-cutoff text-success"></i> Billing & Invoices
+                </a>
+                <a href="{{ url_for('owner.financial_analytics') }}" class="sidebar-link {%- if request.endpoint in ['owner.financial_analytics', 'owner.financial_save_cost'] %}active{%- endif %}">
+                    <i class="bi bi-graph-up-arrow text-success"></i> Financial Analytics
+                </a>
+                <a href="{{ url_for('owner.activity_logs') }}" class="sidebar-link {% if request.endpoint == 'owner.activity_logs' %}active{% endif %}">
+                    <i class="bi bi-journal-text"></i> Activity Logs
+                </a>
+                <a href="{{ url_for('owner.quality_inspection') }}" class="sidebar-link {% if request.endpoint == 'owner.quality_inspection' %}active{% endif %}">
+                    <i class="bi bi-clipboard2-pulse-fill text-warning"></i> Quality Control
+                </a>
+                {% elif current_user.role == 'manager' %}
+                <div class="px-3 py-2 text-uppercase text-muted fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Production Manager</div>
+                <a href="{{ url_for('manager.dashboard') }}" class="sidebar-link {% if request.endpoint == 'manager.dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> Floor Control
+                </a>
+                <a href="{{ url_for('manager.factory_view') }}" class="sidebar-link {% if request.endpoint == 'manager.factory_view' %}active{% endif %}">
+                    <i class="bi bi-building-fill-gear"></i> Digital Factory View
+                </a>
+                <a href="{{ url_for('manager.digital_twin_3d') }}" class="sidebar-link {% if request.endpoint == 'manager.digital_twin_3d' %}active{% endif %}">
+                    <i class="bi bi-box-fill text-info"></i> 3D Digital Twin
+                </a>
+                <a href="{{ url_for('manager.assign_tasks') }}" class="sidebar-link {% if request.endpoint == 'manager.assign_tasks' %}active{% endif %}">
+                    <i class="bi bi-person-gear"></i> Task Assignments
+                </a>
+                <a href="{{ url_for('manager.billing_manage') }}" class="sidebar-link {% if request.endpoint in ['manager.billing_manage', 'manager.billing_view'] %}active{% endif %}">
+                    <i class="bi bi-receipt-cutoff text-success"></i> Billing & Invoices
+                </a>
+                <a href="{{ url_for('manager.quality_inspection') }}" class="sidebar-link {% if request.endpoint == 'manager.quality_inspection' %}active{% endif %}">
+                    <i class="bi bi-clipboard2-pulse-fill text-warning"></i> Quality Control
+                </a>
+                <a href="{{ url_for('manager.online_orders') }}" class="sidebar-link {% if request.endpoint in ['manager.online_orders', 'manager.online_order_detail'] %}active{% endif %}">
+                    <i class="bi bi-cart-plus-fill text-warning"></i> Online Orders
+                </a>
+                {% elif current_user.role == 'worker' %}
+                <div class="px-3 py-2 text-uppercase text-muted fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Worker Portal</div>
+                <a href="{{ url_for('worker.dashboard') }}" class="sidebar-link {% if request.endpoint == 'worker.dashboard' %}active{% endif %}">
+                    <i class="bi bi-card-checklist"></i> My Tasks & Scorecard
+                </a>
+                <a href="{{ url_for('worker.quality_inspect') }}" class="sidebar-link {% if request.endpoint == 'worker.quality_inspect' %}active{% endif %}">
+                    <i class="bi bi-clipboard2-pulse-fill text-warning"></i> Quality Inspection
+                </a>
+                {% elif current_user.role == 'customer' %}
+                <div class="px-3 py-2 text-uppercase text-muted fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Customer Portal</div>
+                <a href="{{ url_for('customer.dashboard') }}" class="sidebar-link {% if request.endpoint in ['customer.dashboard', 'customer.invoice_view'] %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('customer.place_order_request') }}" class="sidebar-link {% if request.endpoint == 'customer.place_order_request' %}active{% endif %}">
+                    <i class="bi bi-cart-plus-fill text-success"></i> Place New Order
+                </a>
+                <a href="{{ url_for('customer.my_online_orders') }}" class="sidebar-link {% if request.endpoint in ['customer.my_online_orders', 'customer.view_online_request'] %}active{% endif %}">
+                    <i class="bi bi-list-check text-info"></i> My Online Orders
+                </a>
+                <a href="{{ url_for('customer.payments') }}" class="sidebar-link {% if request.endpoint == 'customer.payments' %}active{% endif %}">
+                    <i class="bi bi-credit-card-2-front-fill text-success"></i> My Billing & Payments
+                </a>
+                <a href="{{ url_for('customer.support') }}" class="sidebar-link {% if request.endpoint == 'customer.support' %}active{% endif %}">
+                    <i class="bi bi-chat-left-text-fill text-primary"></i> Customer Support
+                </a>
+                <a href="{{ url_for('customer.profile') }}" class="sidebar-link {% if request.endpoint == 'customer.profile' %}active{% endif %}">
+                    <i class="bi bi-person-fill-gear"></i> Settings & Profile
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="p-3 border-top border-secondary">
+                <div class="d-flex align-items-center justify-content-between text-white-50">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-person-circle fs-4 text-white"></i>
+                        <div>
+                            <div class="fw-bold text-white small">{{ current_user.username.capitalize() }}</div>
+                            <small class="badge bg-primary-subtle text-primary text-uppercase" style="font-size:0.65rem;">{{ current_user.role }}</small>
+                        </div>
+                    </div>
+                    <a href="{% if current_user.role == 'customer' %}{{ url_for('customer.logout') }}{% else %}{{ url_for('auth.logout') }}{% endif %}" class="btn btn-sm btn-outline-danger" title="Logout">
+                        <i class="bi bi-power"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Navbar Header -->
+            <div class="top-header">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-light d-lg-none" id="sidebarToggle">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary text-white rounded-3 p-1 d-flex align-items-center justify-content-center" style="width:28px; height:28px;">
+                            <i class="bi bi-scissors fs-6"></i>
+                        </div>
+                        <span class="fw-bold text-slate-700 d-none d-sm-inline brand-font" style="font-size:0.9rem; letter-spacing:-0.3px;">FAB FORA INTERNATIONAL PVT. LTD.</span>
+                    </div>
+                    <div class="vr d-none d-sm-block my-1" style="height: 20px;"></div>
+                    <h5 class="fw-bold mb-0 text-slate-800 brand-font">{% block header_title %}Overview Dashboard{% endblock %}</h5>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Quick Customer Order Track Form -->
+                    <form action="{{ url_for('main.track_search') }}" method="POST" class="d-none d-md-flex align-items-center gap-1">
+                        <input type="text" name="order_id" class="form-control form-control-sm rounded-pill px-3" placeholder="Track Order #..." style="width: 170px;">
+                        <button type="submit" class="btn btn-sm btn-primary rounded-pill"><i class="bi bi-search"></i></button>
+                    </form>
+
+                    {% if current_user.role in ['owner', 'manager', 'worker'] %}
+                    <!-- Order Deadline Notification Bell Dropdown -->
+                    <div class="dropdown" id="deadlineNotificationDropdown">
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill position-relative d-flex align-items-center gap-1.5 px-3 py-1.5" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Order Deadline Notifications">
+                            <i class="bi bi-bell-fill fs-6 text-warning"></i>
+                            <span class="d-none d-sm-inline small fw-semibold text-light">Alerts</span>
+                            {% if deadline_unread_count > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1" style="font-size: 0.7rem;">{{ deadline_unread_count }}</span>
+                            {% elif deadline_active_count > 0 %}
+                            <span class="badge bg-secondary rounded-pill ms-1" style="font-size: 0.7rem;">{{ deadline_active_count }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary rounded-pill ms-1" style="font-size: 0.7rem;">0</span>
+                            {% endif %}
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow-lg p-0 border border-secondary" style="width: 380px; max-width: 92vw; background-color: #1e293b; z-index: 1050;">
+                            <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center bg-dark bg-opacity-50 rounded-top">
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-white d-flex align-items-center gap-2">
+                                        <i class="bi bi-bell-fill text-warning"></i> Order Deadlines
+                                    </h6>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Active production timeline alerts</small>
+                                </div>
+                                <span class="badge bg-danger rounded-pill">{{ deadline_active_count }} Active</span>
+                            </div>
+
+                            <div class="list-group list-group-flush" style="max-height: 350px; overflow-y: auto;">
+                                {% if deadline_notifications %}
+                                    {% for notif in deadline_notifications[:6] %}
+                                    <div class="list-group-item list-group-item-action text-light border-bottom border-secondary p-3" style="background-color: {% if notif.is_read %}transparent{% else %}rgba(59, 130, 246, 0.05){% endif %};">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <span class="badge rounded-pill px-2.5 py-1 text-uppercase fw-bold" style="{{ notif.badge_style }}; font-size: 0.65rem;">
+                                                <i class="bi {{ notif.icon }} me-1"></i> {{ notif.level }}
+                                            </span>
+                                            <small class="text-muted" style="font-size: 0.75rem;">
+                                                <i class="bi bi-calendar3 me-1"></i> {{ notif.deadline_str }}
+                                            </small>
+                                        </div>
+                                        <div class="fw-semibold text-white small mb-1">{{ notif.display_message }}</div>
+                                        <div class="d-flex justify-content-between align-items-center mt-2 pt-1 border-top border-secondary border-opacity-50">
+                                            <small class="text-muted" style="font-size: 0.7rem;">
+                                                Stage: <strong class="text-info">{{ notif.current_stage }}</strong> ({{ notif.progress_percentage }}%)
+                                            </small>
+                                            <span class="badge bg-dark border border-secondary text-warning" style="font-size: 0.68rem;">
+                                                {{ notif.due_text }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="p-4 text-center text-muted">
+                                        <i class="bi bi-bell-slash fs-3 d-block mb-2"></i>
+                                        <div class="small">No urgent order deadline warnings right now.</div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="p-2 border-top border-secondary d-flex justify-content-between align-items-center bg-dark bg-opacity-50 rounded-bottom">
+                                <form action="{{ url_for('main.mark_all_notifications_read') }}" method="POST" class="m-0">
+                                    <button type="submit" class="btn btn-sm btn-link text-muted text-decoration-none py-0 small" style="font-size: 0.75rem;">
+                                        <i class="bi bi-check2-all me-1"></i> Mark All Read
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('main.notifications_center') }}" class="btn btn-sm btn-link text-info text-decoration-none fw-semibold py-0 small" style="font-size: 0.75rem;">
+                                    View All ({{ deadline_active_count }}) <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="vr mx-2"></div>
+                    <a href="{{ url_for('main.landing') }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                        <i class="bi bi-house-fill me-1"></i> Public Site
+                    </a>
+                </div>
+            </div>
+
+            <!-- Flash Toast Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+
+            <footer class="mt-auto py-3 border-top text-center text-muted small bg-white rounded-3 shadow-sm px-3 mt-4">
+                <div class="fw-bold text-slate-700">© 2026 FAB FORA INTERNATIONAL PVT. LTD.</div>
+                <div style="font-size:0.75rem;">AI-Based Garment Production & Planning Software. All Rights Reserved.</div>
+            </footer>
+        </main>
+    </div>
+    {% else %}
+        <!-- Non-Authenticated Layout (Landing Page & Auth Pages) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-lg rounded-3 mb-2" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block non_auth_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

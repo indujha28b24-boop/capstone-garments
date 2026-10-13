@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Place New Order - FAB FORA{% endblock %}
+{% block header_title %}Place New Order Request{% endblock %}
+{% block content %}
+<div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%); color: white; border: none;">
+    <h4 class="fw-bold mb-1 brand-font"><i class="bi bi-cart-plus-fill me-2"></i>Submit a New Garment Order Request</h4>
+    <p class="mb-0 text-white-50 small">Your request will be reviewed by our management team before entering production.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-4"><i class="bi bi-clipboard2-plus text-primary me-2"></i>Order Request Details</h5>
+            <form method="POST" id="orderRequestForm">
+                <div class="mb-4">
+                    <label for="garment_type" class="form-label fw-semibold">Garment Type <span class="text-danger">*</span></label>
+                    <select class="form-select" id="garment_type" name="garment_type" required>
+                        <option value="" disabled selected>-- Select Garment Type --</option>
+                        {% for gtype in ['Shirt', 'T-Shirt', 'Denim', 'Dress', 'Jacket', 'Other'] %}
+                        <option value="{{ gtype }}" {% if form_data.get('garment_type') == gtype %}selected{% endif %}>{{ gtype }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="quantity" class="form-label fw-semibold">Total Quantity <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" min="1" required value="{{ form_data.get('quantity', '') }}" placeholder="e.g. 100">
+                    <div class="form-text text-muted small">Total number of garments in this order.</div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Size-wise Quantity Breakdown <span class="text-muted small">(Optional)</span></label>
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-color);">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small text-muted">S (Small)</label>
+                                <input type="number" class="form-control size-input" id="size_s" name="size_s" min="0" value="{{ form_data.get('size_s', '') }}" placeholder="0">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small text-muted">M (Medium)</label>
+                                <input type="number" class="form-control size-input" id="size_m" name="size_m" min="0" value="{{ form_data.get('size_m', '') }}" placeholder="0">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small text-muted">L (Large)</label>
+                                <input type="number" class="form-control size-input" id="size_l" name="size_l" min="0" value="{{ form_data.get('size_l', '') }}" placeholder="0">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small text-muted">XL (Extra Large)</label>
+                                <input type="number" class="form-control size-input" id="size_xl" name="size_xl" min="0" value="{{ form_data.get('size_xl', '') }}" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex align-items-center gap-2">
+                            <span class="text-muted small">Size Total:</span>
+                            <span id="sizeTotal" class="fw-bold" style="color: var(--primary);">0</span>
+                            <span id="sizeMismatchWarn" class="text-danger small d-none"><i class="bi bi-exclamation-triangle-fill me-1"></i>Must match total quantity!</span>
+                        </div>
+                        <div class="form-text text-muted small mt-1">If entered, total must match order quantity. Leave blank to auto-distribute.</div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="fabric_preference" class="form-label fw-semibold">Fabric Preference</label>
+                    <input type="text" class="form-control" id="fabric_preference" name="fabric_preference" value="{{ form_data.get('fabric_preference', '') }}" placeholder="e.g. Cotton, Polyester, Denim Blend...">
+                </div>
+                <div class="mb-4">
+                    <label for="color" class="form-label fw-semibold">Color</label>
+                    <input type="text" class="form-control" id="color" name="color" value="{{ form_data.get('color', '') }}" placeholder="e.g. Navy Blue, White, Black...">
+                </div>
+                <div class="mb-4">
+                    <label for="required_delivery_date" class="form-label fw-semibold">Required Delivery Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="required_delivery_date" name="required_delivery_date" required value="{{ form_data.get('required_delivery_date', '') }}">
+                    <div class="form-text text-muted small">Must be a future date.</div>
+                </div>
+                <div class="mb-4">
+                    <label for="special_requirements" class="form-label fw-semibold">Special Requirements / Notes</label>
+                    <textarea class="form-control" id="special_requirements" name="special_requirements" rows="3" placeholder="Any specific instructions, customizations, or notes...">{{ form_data.get('special_requirements', '') }}</textarea>
+                </div>
+                <div class="d-flex gap-3 flex-wrap">
+                    <button type="submit" class="btn btn-primary px-4 py-2" id="submitBtn">
+                        <i class="bi bi-send-fill me-2"></i>Submit Order Request
+                    </button>
+                    <a href="{{ url_for('customer.my_online_orders') }}" class="btn btn-outline-secondary px-4 py-2">
+                        <i class="bi bi-arrow-left me-1"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="glass-card p-4 mb-4">
+            <h6 class="fw-bold mb-3 text-warning"><i class="bi bi-info-circle-fill me-2"></i>How It Works</h6>
+            <div class="vstack gap-3">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;font-size:0.85rem;font-weight:700;">1</div>
+                    <div><div class="fw-semibold small">Submit Request</div><div class="text-muted" style="font-size:0.78rem;">Fill the form and submit your garment order request.</div></div>
+                </div>
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="bg-warning text-dark rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;font-size:0.85rem;font-weight:700;">2</div>
+                    <div><div class="fw-semibold small">Management Confirmation</div><div class="text-muted" style="font-size:0.78rem;">Our management reviews and confirms your order before production starts.</div></div>
+                </div>
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="bg-success text-white rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;font-size:0.85rem;font-weight:700;">3</div>
+                    <div><div class="fw-semibold small">Production Begins</div><div class="text-muted" style="font-size:0.78rem;">Once accepted, your order enters the production workflow and can be tracked live.</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card p-4">
+            <h6 class="fw-bold mb-3 text-info"><i class="bi bi-shield-check me-2"></i>Status Guide</h6>
+            <div class="vstack gap-2">
+                <div class="d-flex align-items-center gap-2"><span class="badge px-3 py-1" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid #f59e0b;">PENDING</span><span class="text-muted small">Waiting for management confirmation</span></div>
+                <div class="d-flex align-items-center gap-2"><span class="badge px-3 py-1" style="background:rgba(16,185,129,0.15);color:#10b981;border:1px solid #10b981;">ACCEPTED</span><span class="text-muted small">Order accepted for production</span></div>
+                <div class="d-flex align-items-center gap-2"><span class="badge px-3 py-1" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid #ef4444;">REJECTED</span><span class="text-muted small">Order was not accepted</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function(){
+    var dateInput=document.getElementById('required_delivery_date');
+    var today=new Date(); today.setDate(today.getDate()+1);
+    if(!dateInput.value) dateInput.min=today.toISOString().split('T')[0];
+    var sizeInputs=document.querySelectorAll('.size-input');
+    var qtyInput=document.getElementById('quantity');
+    var totalSpan=document.getElementById('sizeTotal');
+    var warnSpan=document.getElementById('sizeMismatchWarn');
+    function updateSizeTotal(){
+        var t=0; sizeInputs.forEach(function(i){t+=parseInt(i.value)||0;});
+        totalSpan.textContent=t;
+        var q=parseInt(qtyInput.value)||0;
+        if(t>0&&q>0&&t!==q){warnSpan.classList.remove('d-none');totalSpan.style.color='#ef4444';}
+        else{warnSpan.classList.add('d-none');totalSpan.style.color='var(--primary)';}
+    }
+    sizeInputs.forEach(function(i){i.addEventListener('input',updateSizeTotal);});
+    qtyInput.addEventListener('input',updateSizeTotal);
+    document.getElementById('orderRequestForm').addEventListener('submit',function(e){
+        var t=0; sizeInputs.forEach(function(i){t+=parseInt(i.value)||0;});
+        var q=parseInt(qtyInput.value)||0;
+        if(q<=0){e.preventDefault();alert('Quantity must be greater than 0.');}
+        else if(t>0&&q>0&&t!==q){e.preventDefault();warnSpan.classList.remove('d-none');alert('Size totals ('+t+') must equal quantity ('+q+')');}
+    });
+})();
+</script>
+{% endblock %}

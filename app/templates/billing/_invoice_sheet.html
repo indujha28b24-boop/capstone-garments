@@ -1,0 +1,218 @@
+<!-- Professional FAB FORA INTERNATIONAL PVT. LTD. Tax Invoice Document -->
+<div class="invoice-sheet" id="printableInvoice">
+    <!-- 1. Header: Company Branding & Tax Invoice Header -->
+    <div class="row align-items-start mb-3 pb-3 border-bottom border-2" style="border-color: #0284c7 !important;">
+        <div class="col-sm-7 mb-3 mb-sm-0">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; min-width: 44px;">
+                    <i class="bi bi-scissors fs-4"></i>
+                </div>
+                <div>
+                    <h3 class="invoice-brand-title mb-0">FAB FORA INTERNATIONAL PVT. LTD.</h3>
+                    <div class="invoice-brand-tagline">Garment Production &amp; Planning</div>
+                    <div class="invoice-brand-address">
+                        <i class="bi bi-geo-alt me-1"></i>Whitefield Export Apparel Park, Bangalore, KA, India
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-5 text-sm-end">
+            <div class="invoice-doc-title">TAX INVOICE</div>
+            <div class="invoice-meta-item mt-1">
+                <strong>Invoice No:</strong> <span class="font-monospace fw-bold">{{ invoice.invoice_number }}</span>
+            </div>
+            <div class="invoice-meta-item">
+                <strong>Invoice Date:</strong> {{ invoice.invoice_date.strftime('%d-%m-%Y') }}
+            </div>
+            <div class="mt-2">
+                {% set st = (invoice.payment_status or 'Pending')|lower %}
+                {% if 'paid' in st and 'partial' not in st %}
+                    <span class="invoice-status-badge invoice-status-paid">
+                        <i class="bi bi-check-circle-fill"></i> STATUS: PAID
+                    </span>
+                {% elif 'partial' in st %}
+                    <span class="invoice-status-badge invoice-status-partial">
+                        <i class="bi bi-pie-chart-fill"></i> STATUS: PARTIALLY PAID
+                    </span>
+                {% else %}
+                    <span class="invoice-status-badge invoice-status-pending">
+                        <i class="bi bi-clock-fill"></i> STATUS: PENDING
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Two-Column Information Box: Bill To & Order Details -->
+    <div class="row g-3 mb-3">
+        <!-- Bill To -->
+        <div class="col-md-6">
+            <div class="invoice-info-card">
+                <div class="invoice-card-heading">
+                    <i class="bi bi-person-fill text-primary me-1"></i> BILL TO
+                </div>
+                <div class="invoice-party-name">{{ invoice.customer.name }}</div>
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Customer ID:</span>
+                    <span class="invoice-detail-val">CUST-{{ "%04d"|format(invoice.customer.id) }}</span>
+                </div>
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Email:</span>
+                    <span class="invoice-detail-val">{{ invoice.customer.email }}</span>
+                </div>
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Phone:</span>
+                    <span class="invoice-detail-val">{{ invoice.customer.phone }}</span>
+                </div>
+                {% if invoice.customer.customer_user and invoice.customer.customer_user.gst_number %}
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">GSTIN:</span>
+                    <span class="invoice-detail-val font-monospace">{{ invoice.customer.customer_user.gst_number }}</span>
+                </div>
+                {% endif %}
+                {% if invoice.customer.customer_user and invoice.customer.customer_user.billing_address %}
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Address:</span>
+                    <span class="invoice-detail-val">{{ invoice.customer.customer_user.billing_address }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Order Details -->
+        <div class="col-md-6">
+            <div class="invoice-info-card">
+                <div class="invoice-card-heading">
+                    <i class="bi bi-bag-check-fill text-primary me-1"></i> ORDER DETAILS
+                </div>
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Order Number:</span>
+                    <span class="invoice-detail-val">#ORD-{{ "%04d"|format(invoice.order_id) }}</span>
+                </div>
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Garment Type:</span>
+                    <span class="invoice-detail-val fw-bold text-primary">{{ invoice.order.garment_type }}</span>
+                </div>
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Order Quantity:</span>
+                    <span class="invoice-detail-val">{{ "{:,}".format(invoice.order.quantity) }} units</span>
+                </div>
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Order Date:</span>
+                    <span class="invoice-detail-val">{{ invoice.order.order_date.strftime('%d-%m-%Y') }}</span>
+                </div>
+                <div class="invoice-detail-line">
+                    <span class="invoice-detail-label">Production Status:</span>
+                    <span class="invoice-detail-val text-info">{{ invoice.order.status }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Garment Billing Item Table -->
+    <div class="invoice-table-wrapper">
+        <div class="table-responsive">
+            <table class="table invoice-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 48%;">DESCRIPTION</th>
+                        <th class="text-end" style="width: 14%;">QUANTITY</th>
+                        <th class="text-end" style="width: 18%;">RATE</th>
+                        <th class="text-end" style="width: 20%;">AMOUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ invoice.order.garment_type }} Batch Production</div>
+                            <small class="text-muted">Industrial apparel batch manufacturing &amp; quality finishing</small>
+                        </td>
+                        <td class="text-end fw-semibold">{{ "{:,}".format(invoice.order.quantity) }}</td>
+                        <td class="text-end fw-semibold">{{ invoice.derived_rate | format_inr }}</td>
+                        <td class="text-end fw-bold">{{ invoice.subtotal | format_inr }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4. Totals Breakdown & Notes -->
+    <div class="row g-3 align-items-start mb-4">
+        <!-- Notes & Payment Status Callout -->
+        <div class="col-md-6 order-2 order-md-1">
+            <div class="p-3 rounded-2" style="background-color: #f8fafc; border: 1px dashed #cbd5e1;">
+                <div class="small fw-bold text-dark mb-1">
+                    <i class="bi bi-shield-check text-success me-1"></i> Payment Status &amp; Verification
+                </div>
+                <div class="small text-muted mb-2">
+                    Payment Status:
+                    {% if 'paid' in st and 'partial' not in st %}
+                        <strong class="text-success">PAID</strong>
+                    {% elif 'partial' in st %}
+                        <strong class="text-primary">PARTIALLY PAID</strong>
+                    {% else %}
+                        <strong class="text-warning">PENDING</strong>
+                    {% endif %}
+                </div>
+                <div class="small text-muted fst-italic mb-1">
+                    Thank you for your business.
+                </div>
+                <div class="text-muted" style="font-size: 0.72rem;">
+                    This is an authentic computer-generated commercial tax invoice issued by StitchTech Garment ERP for FAB FORA INTERNATIONAL PVT. LTD.
+                </div>
+            </div>
+        </div>
+
+        <!-- Totals Table -->
+        <div class="col-md-6 order-1 order-md-2">
+            <table class="invoice-totals-table">
+                <tbody>
+                    <tr>
+                        <td class="label-col">Subtotal:</td>
+                        <td class="val-col">{{ invoice.subtotal | format_inr }}</td>
+                    </tr>
+                    {% if invoice.additional_charges and invoice.additional_charges > 0 %}
+                    <tr>
+                        <td class="label-col">Additional Charges:</td>
+                        <td class="val-col">{{ invoice.additional_charges | format_inr }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if invoice.discount and invoice.discount > 0 %}
+                    <tr>
+                        <td class="label-col text-success">Discount:</td>
+                        <td class="val-col text-success">-{{ invoice.discount | format_inr }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td class="label-col">Taxable Amount:</td>
+                        <td class="val-col">{{ (invoice.subtotal + invoice.additional_charges - invoice.discount) | format_inr }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Tax ({{ invoice.tax_percentage }}%):</td>
+                        <td class="val-col">{{ invoice.tax_amount | format_inr }}</td>
+                    </tr>
+                    <tr class="invoice-grand-total-row">
+                        <td class="label-col invoice-grand-total-label">GRAND TOTAL:</td>
+                        <td class="val-col invoice-grand-total-val">{{ invoice.total_amount | format_inr }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. Signoff & Authorized Signature -->
+    <div class="row align-items-end mt-4 pt-2">
+        <div class="col-6">
+            <div class="text-muted" style="font-size: 0.75rem;">
+                <i class="bi bi-lock-fill me-1"></i>Digitally Authenticated Commercial Document
+            </div>
+        </div>
+        <div class="col-6 text-end">
+            <div class="invoice-signature-box">
+                <div class="invoice-sig-line"></div>
+                <div class="invoice-sig-title">Authorized Signature</div>
+                <div class="invoice-sig-company">FAB FORA INTERNATIONAL PVT. LTD.</div>
+            </div>
+        </div>
+    </div>
+</div>

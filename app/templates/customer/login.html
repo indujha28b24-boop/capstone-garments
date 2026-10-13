@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Portal Login - StitchTech ERP{% endblock %}
+
+{% block non_auth_content %}
+<style>
+    /* Styling to match executive owner and manager login pages */
+    .auth-bg {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+    }
+
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        width: 100%;
+        max-width: 440px;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .brand-logo-container {
+        background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%);
+        padding: 2.5rem 2rem;
+        text-align: center;
+        color: #ffffff;
+    }
+</style>
+
+<div class="auth-bg">
+    <div class="auth-card">
+        <div class="brand-logo-container" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(13, 148, 136, 0.95)); border-bottom: 2px solid #0d9488;">
+            <div class="bg-white text-primary rounded-4 p-2 d-inline-block shadow mb-2" style="width: 50px; height: 50px;">
+                <i class="bi bi-scissors fs-3"></i>
+            </div>
+            <h4 class="fw-bold brand-font mb-1" style="font-size: 1.15rem; letter-spacing: -0.3px; color: white;">FAB FORA INTERNATIONAL PVT. LTD.</h4>
+            <p class="text-white-50 small mb-2" style="font-size: 0.72rem; font-weight: 500;">"AI-Based Garment Production & Planning Software"</p>
+            <span class="badge bg-light text-primary px-3 py-1.5 rounded-pill small fw-bold" style="font-size: 0.75rem;">Welcome to FAB FORA Enterprise Portal</span>
+        </div>
+
+        <div class="p-4">
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show small mb-3" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('customer.login') }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-slate-700">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                        <input type="email" name="email" class="form-control border-start-0" placeholder="name@company.com" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-semibold text-slate-700 mb-0">Password</label>
+                        <a href="#" class="text-primary small text-decoration-none" onclick="alert('Please contact your account manager to reset your password.')">Forgot Password?</a>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-lock text-muted"></i></span>
+                        <input type="password" name="password" class="form-control border-start-0" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="mb-4 form-check">
+                    <input type="checkbox" name="remember" class="form-check-input" id="rememberMe">
+                    <label class="form-check-label small text-slate-600" for="rememberMe">Remember my device</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold shadow-sm mb-3">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Access Portal
+                </button>
+
+                <div class="text-center">
+                    <a href="/" class="btn btn-link text-muted small text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Main Landing
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

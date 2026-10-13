@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Online Orders - FAB FORA{% endblock %}
+{% block header_title %}Online Customer Orders{% endblock %}
+{% block content %}
+<!-- Header -->
+<div class="glass-card p-4 mb-4" style="background:linear-gradient(135deg,#1e3a8a 0%,#7c3aed 100%);color:white;border:none;">
+    <h4 class="fw-bold mb-1 brand-font"><i class="bi bi-cart-plus-fill me-2"></i>Online Customer Orders</h4>
+    <p class="mb-0 text-white-50 small">Customer-submitted order requests awaiting management review. Accept to send to production planning.</p>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center gap-3">
+            <div class="p-3 rounded-3 fs-3" style="background:rgba(99,102,241,0.15);color:#6366f1;"><i class="bi bi-inbox-fill"></i></div>
+            <div><small class="text-muted d-block small">TOTAL ORDERS</small><h4 class="fw-bold mb-0">{{ total }}</h4></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center gap-3">
+            <div class="p-3 rounded-3 fs-3" style="background:rgba(245,158,11,0.15);color:#f59e0b;"><i class="bi bi-hourglass-split"></i></div>
+            <div><small class="text-muted d-block small">PENDING</small><h4 class="fw-bold mb-0 text-warning">{{ pending }}</h4></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center gap-3">
+            <div class="p-3 rounded-3 fs-3" style="background:rgba(16,185,129,0.15);color:#10b981;"><i class="bi bi-check-circle-fill"></i></div>
+            <div><small class="text-muted d-block small">ACCEPTED</small><h4 class="fw-bold mb-0 text-success">{{ accepted }}</h4></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center gap-3">
+            <div class="p-3 rounded-3 fs-3" style="background:rgba(239,68,68,0.15);color:#ef4444;"><i class="bi bi-x-circle-fill"></i></div>
+            <div><small class="text-muted d-block small">REJECTED</small><h4 class="fw-bold mb-0 text-danger">{{ rejected }}</h4></div>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="glass-card p-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>Recent Online Order Requests</h5>
+        <span class="badge bg-secondary-subtle text-muted">{{ requests|length }} records</span>
+    </div>
+    {% if requests %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Request ID</th>
+                    <th>Customer</th>
+                    <th>Garment Type</th>
+                    <th>Quantity</th>
+                    <th>Required Delivery Date</th>
+                    <th>Submitted Date</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td class="fw-bold text-primary small">{{ req.request_number }}</td>
+                    <td>
+                        <div class="fw-semibold small">{{ req.customer.name }}</div>
+                        <small class="text-muted">{{ req.customer.email }}</small>
+                    </td>
+                    <td><span class="badge bg-primary-subtle text-primary">{{ req.garment_type }}</span></td>
+                    <td class="fw-semibold">{{ "{:,}".format(req.quantity) }}</td>
+                    <td><small>{{ req.required_delivery_date.strftime('%b %d, %Y') }}</small></td>
+                    <td><small class="text-muted">{{ req.submitted_at.strftime('%b %d, %Y') }}</small></td>
+                    <td>
+                        {% if req.status == 'PENDING' %}
+                        <span class="badge px-2 py-1" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid #f59e0b;"><i class="bi bi-hourglass-split me-1"></i>PENDING</span>
+                        {% elif req.status in ['ACCEPTED', 'APPROVED'] %}
+                        <span class="badge px-2 py-1" style="background:rgba(16,185,129,0.15);color:#10b981;border:1px solid #10b981;"><i class="bi bi-check-circle-fill me-1"></i>ACCEPTED</span>
+                        {% elif req.status == 'REJECTED' %}
+                        <span class="badge px-2 py-1" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid #ef4444;"><i class="bi bi-x-circle-fill me-1"></i>REJECTED</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end flex-wrap">
+                            <a href="{{ url_for('manager.online_order_detail', req_id=req.id) }}" class="btn btn-sm btn-outline-info rounded-pill"><i class="bi bi-eye me-1"></i>View</a>
+                            {% if req.status == 'PENDING' %}
+                            <form method="POST" action="{{ url_for('manager.online_order_accept', req_id=req.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to accept this customer order and send it to production planning?')">
+                                <button class="btn btn-sm btn-outline-success rounded-pill"><i class="bi bi-check-lg me-1"></i>Accept Order</button>
+                            </form>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#rejectModal{{ req.id }}">
+                                <i class="bi bi-x-lg me-1"></i>Reject Order
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+        <div>No online orders found.</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Reject Modals -->
+{% for req in requests %}
+{% if req.status == 'PENDING' %}
+<div class="modal fade" id="rejectModal{{ req.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--card-bg);border:1px solid var(--border-color);">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold"><i class="bi bi-x-circle-fill text-danger me-2"></i>Reject Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('manager.online_order_reject', req_id=req.id) }}">
+                <div class="modal-body">
+                    <p class="text-muted small">Are you sure you want to reject this customer order?</p>
+                    <p class="mb-3 text-white small">Order: <strong>{{ req.request_number }}</strong> &bull; Customer: <strong>{{ req.customer.name }}</strong></p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Rejection Reason <span class="text-muted small">(Optional)</span></label>
+                        <textarea class="form-control" name="rejection_reason" rows="3" placeholder="Provide a reason for rejection (optional)..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-x-circle me-1"></i>Reject Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

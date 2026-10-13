@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block title %}Order Management - StitchTech ERP{% endblock %}
+{% block header_title %}Garment Order Lifecycle Management{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Production Orders</h4>
+        <p class="text-muted small mb-0">Create new garment production batches and update stage timelines.</p>
+    </div>
+
+    <button class="btn btn-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addOrderModal">
+        <i class="bi bi-plus-lg me-1"></i> Add Production Order
+    </button>
+</div>
+
+<div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3 g-4">
+    {% for ord in orders %}
+    <div class="col">
+        <div class="glass-card p-4 h-100 d-flex flex-column shadow-sm border position-relative">
+            <!-- Header: Order ID & Priority -->
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                <div>
+                    <h5 class="fw-bold mb-1 text-slate-800 d-flex align-items-center gap-2">
+                        Order #{{ ord.id }}
+                    </h5>
+                    <div class="text-muted small fw-semibold"><i class="bi bi-person-fill me-1"></i>{{ ord.customer.customer_name if ord.customer else 'Direct Client' }}</div>
+                </div>
+                <div>
+                    {% set prio = ord.smart_priority %}
+                    {% if prio == 'URGENT' %}
+                        <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ ord.smart_priority_reasons|join(', ') }}"><i class="bi bi-exclamation-circle-fill me-1"></i> URGENT</span>
+                    {% elif prio == 'HIGH' %}
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ ord.smart_priority_reasons|join(', ') }}"><i class="bi bi-arrow-up-circle-fill me-1"></i> HIGH</span>
+                    {% elif prio == 'NORMAL' %}
+                        <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ ord.smart_priority_reasons|join(', ') }}"><i class="bi bi-dash-circle-fill me-1"></i> NORMAL</span>
+                    {% else %}
+                        <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ ord.smart_priority_reasons|join(', ') }}"><i class="bi bi-check-circle-fill me-1"></i> LOW</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Body: Garment, Qty, Date, Status, Stage -->
+            <div class="row g-3 mb-4 flex-grow-1">
+                <div class="col-6">
+                    <span class="text-muted small d-block mb-1">Garment Type</span>
+                    <span class="badge bg-primary-subtle text-primary fw-bold">{{ ord.garment_type }}</span>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small d-block mb-1">Quantity</span>
+                    <span class="fw-bold text-slate-800">{{ "{:,}".format(ord.quantity) }} pcs</span>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small d-block mb-1">Current Stage</span>
+                    <span class="fw-bold text-info-emphasis"><i class="bi bi-diagram-3 me-1"></i>{{ ord.current_stage }}</span>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted small d-block mb-1">Overall Status</span>
+                    {% if ord.status == 'Delivered' %}
+                        <span class="badge bg-success">Delivered</span>
+                    {% elif ord.status == 'Delayed' %}
+                        <span class="badge bg-danger">Delayed</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">In Production</span>
+                    {% endif %}
+                </div>
+                <div class="col-12 border-top pt-2 mt-3">
+                    <span class="text-muted small">Delivery Deadline:</span> 
+                    <span class="fw-bold ms-1 text-slate-700">{{ ord.deadline.strftime('%b %d, %Y') }}</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mb-4 bg-light p-3 rounded-3 border">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="fw-bold text-slate-700 text-uppercase" style="font-size: 0.75rem;">Production Progress</small>
+                    <span class="badge bg-primary rounded-pill">{{ ord.progress_percentage }}%</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated rounded-pill" style="width: {{ ord.progress_percentage }}%;"></div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-between mt-auto">
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-sm btn-outline-primary fw-semibold px-3 rounded-pill" data-bs-toggle="modal" data-bs-target="#updateStageModal{{ ord.id }}" title="Update Stage Progress">
+                        <i class="bi bi-arrow-repeat me-1"></i> Stage
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary fw-semibold px-3 rounded-pill" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ ord.id }}" title="View Size Progress & Delays">
+                        <i class="bi bi-info-circle me-1"></i> Details
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border fw-semibold rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#qrModal{{ ord.id }}" title="View Customer QR Code">
+                        <i class="bi bi-qr-code me-1"></i> QR
+                    </button>
+                </div>
+                <form action="{{ url_for('owner.order_delete', order_id=ord.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete Order #{{ ord.id }}? This action cannot be undone.');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Delete Order"><i class="bi bi-trash-fill"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Update Stage Progress for Order #{{ ord.id }} -->
+    <div class="modal fade" id="updateStageModal{{ ord.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-arrow-repeat me-2"></i>Update Stage - Order #{{ ord.id }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('owner.order_stage_update') }}" method="POST">
+                    <input type="hidden" name="order_id" value="{{ ord.id }}">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Production Stage Workflow</label>
+                            <select name="stage" class="form-select" required>
+                                <option value="Order Confirmed" {% if ord.current_stage == 'Order Confirmed' %}selected{% endif %}>1. Order Confirmed</option>
+                                <option value="Fabric Received" {% if ord.current_stage == 'Fabric Received' %}selected{% endif %}>2. Fabric Received</option>
+                                <option value="Cutting" {% if ord.current_stage == 'Cutting' %}selected{% endif %}>3. Cutting</option>
+                                <option value="Stitching" {% if ord.current_stage == 'Stitching' %}selected{% endif %}>4. Stitching</option>
+                                <option value="Quality Check" {% if ord.current_stage == 'Quality Check' %}selected{% endif %}>5. Quality Check</option>
+                                <option value="Packing" {% if ord.current_stage == 'Packing' %}selected{% endif %}>6. Packing</option>
+                                <option value="Delivered" {% if ord.current_stage == 'Delivered' %}selected{% endif %}>7. Delivered</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Progress Percentage (0 - 100%)</label>
+                            <input type="number" name="progress_percentage" class="form-control" value="{{ ord.progress_percentage }}" min="0" max="100" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4">Update Stage</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Details (Size Progress & Delays) for Order #{{ ord.id }} -->
+    <div class="modal fade" id="viewDetailsModal{{ ord.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Order Details - Order #{{ ord.id }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">Size-wise Production Progress</h5>
+                    <div class="row g-3 mb-4">
+                        {% for sq in ord.size_quantities %}
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge bg-primary fs-6">Size {{ sq.size }}</span>
+                                    <span class="fw-bold text-slate-800">{{ sq.completed_quantity }} / {{ sq.planned_quantity }} pcs</span>
+                                </div>
+                                {% set size_pct = (sq.completed_quantity / sq.planned_quantity * 100)|int if sq.planned_quantity > 0 else 0 %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: {{ size_pct }}%;"></div>
+                                    </div>
+                                    <small class="fw-bold">{{ size_pct }}%</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-12 text-muted">No size-wise quantities defined.</div>
+                        {% endfor %}
+                    </div>
+
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">Production Delay Log</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Reason</th>
+                                    <th>Notes</th>
+                                    <th>Recorded By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in ord.delays %}
+                                <tr>
+                                    <td>{{ d.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td><span class="badge bg-danger-subtle text-danger">{{ d.reason }}</span></td>
+                                    <td>{{ d.note or '-' }}</td>
+                                    <td>{{ d.user.username }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-muted text-center py-3">No delay events recorded. Production is/was on track.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: QR Code for Order #{{ ord.id }} -->
+    <div class="modal fade" id="qrModal{{ ord.id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-dark text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-qr-code-scan me-2"></i>Order QR Tracker</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <h4 class="fw-bold text-slate-800 mb-1">Order #{{ ord.id }}</h4>
+                    <p class="text-muted mb-4">{{ ord.customer.customer_name if ord.customer else 'Direct Client' }}</p>
+                    
+                    {% set tracking_path = url_for('main.track_order', tracking_id=ord.qr_info.tracking_id if ord.qr_info else ('TRK-' ~ (ord.id + 1000))) %}
+                    {% set port = request.host.split(':')[1] if ':' in request.host else '80' %}
+                    {% set tracking_url = "http://" ~ get_lan_ip() ~ ":" ~ port ~ tracking_path %}
+                    
+                    <!-- Dynamic QR Code Generation -->
+                    <div class="bg-white p-3 rounded-4 d-inline-block border shadow-sm mb-4">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ tracking_url|urlencode }}&bgcolor=ffffff&color=000000" alt="QR Code for Order #{{ ord.id }}" class="img-fluid rounded" style="width: 180px; height: 180px;">
+                    </div>
+
+                    <div class="row text-start g-3 small bg-light p-3 rounded-3 border">
+                        <div class="col-6">
+                            <span class="text-muted text-uppercase" style="font-size: 0.7rem;">Garment Type</span><br>
+                            <span class="fw-bold">{{ ord.garment_type }}</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted text-uppercase" style="font-size: 0.7rem;">Quantity</span><br>
+                            <span class="fw-bold">{{ "{:,}".format(ord.quantity) }} pcs</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted text-uppercase" style="font-size: 0.7rem;">Current Stage</span><br>
+                            <span class="fw-bold text-primary">{{ ord.current_stage }}</span>
+                        </div>
+                        <div class="col-6">
+                            <span class="text-muted text-uppercase" style="font-size: 0.7rem;">Status</span><br>
+                            <span class="fw-bold text-slate-800">{{ ord.status }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light justify-content-between border-top-0 rounded-bottom-4">
+                    <a href="{{ tracking_url }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-up-right me-1"></i> Open Tracker</a>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+        <h5 class="text-muted mt-3">No orders found</h5>
+        <p class="text-muted small">Click 'Add Production Order' to create one.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal: Add New Order -->
+<div class="modal fade" id="addOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle-fill me-2"></i>New Garment Production Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('owner.order_add') }}" method="POST">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select Customer</label>
+                        <select name="customer_id" class="form-select" required>
+                            {% for c in customers %}
+                            <option value="{{ c.id }}">{{ c.customer_name }} ({{ c.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Garment Category</label>
+                        <select name="garment_type" class="form-select" required>
+                            <option value="Shirts">Shirts</option>
+                            <option value="Denim">Denim Jeans</option>
+                            <option value="T-Shirts">T-Shirts</option>
+                            <option value="Dresses">Dresses</option>
+                            <option value="Jackets">Jackets</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Quantity (Pieces)</label>
+                        <input type="number" id="order_quantity" name="quantity" class="form-control" placeholder="e.g. 1000" min="1" required>
+                    </div>
+
+                    <!-- Size-wise optional inputs -->
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="fw-bold mb-2 small text-uppercase text-slate-700">Size-wise Distribution (Optional)</div>
+                        <p class="text-muted small mb-2">If left empty, quantity will be split equally among sizes.</p>
+                        <div class="row g-2">
+                            <div class="col-3">
+                                <label class="form-label small fw-bold">S</label>
+                                <input type="number" id="qty_s" name="qty_s" class="form-control form-control-sm size-input" placeholder="0" min="0">
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label small fw-bold">M</label>
+                                <input type="number" id="qty_m" name="qty_m" class="form-control form-control-sm size-input" placeholder="0" min="0">
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label small fw-bold">L</label>
+                                <input type="number" id="qty_l" name="qty_l" class="form-control form-control-sm size-input" placeholder="0" min="0">
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label small fw-bold">XL</label>
+                                <input type="number" id="qty_xl" name="qty_xl" class="form-control form-control-sm size-input" placeholder="0" min="0">
+                            </div>
+                        </div>
+                        <div id="size_warning" class="text-danger small mt-2" style="display:none;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Target Delivery Deadline</label>
+                        <input type="date" name="deadline" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Create & Generate QR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.querySelector("#addOrderModal form");
+        const quantityInput = document.getElementById("order_quantity");
+        const qtyS = document.getElementById("qty_s");
+        const qtyM = document.getElementById("qty_m");
+        const qtyL = document.getElementById("qty_l");
+        const qtyXL = document.getElementById("qty_xl");
+        const warning = document.getElementById("size_warning");
+
+        form.addEventListener("submit", function(event) {
+            const total = parseInt(quantityInput.value) || 0;
+            const s = parseInt(qtyS.value) || 0;
+            const m = parseInt(qtyM.value) || 0;
+            const l = parseInt(qtyL.value) || 0;
+            const xl = parseInt(qtyXL.value) || 0;
+
+            const sum = s + m + l + xl;
+            if (s > 0 || m > 0 || l > 0 || xl > 0) {
+                if (sum !== total) {
+                    event.preventDefault();
+                    warning.textContent = `Sum of sizes (${sum}) must equal total quantity (${total}).`;
+                    warning.style.display = "block";
+                    return false;
+                }
+            }
+            warning.style.display = "none";
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+
+{% block title %}Order Tracking & Material Intelligence - StitchTech ERP{% endblock %}
+{% block header_title %}Order tracking timeline & Logistics Engine{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* Tracking Timeline CSS */
+    .amazon-tracker {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-top: 2rem;
+        margin-bottom: 2.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    @media (min-width: 992px) {
+        .amazon-tracker::before {
+            content: '';
+            position: absolute;
+            top: 22px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+        .amazon-tracker-progress {
+            position: absolute;
+            top: 22px;
+            left: 0;
+            height: 4px;
+            background: #10b981;
+            z-index: 2;
+            transition: width 1s ease-in-out;
+        }
+    }
+
+    .tracker-step {
+        position: relative;
+        z-index: 3;
+        text-align: center;
+        flex: 1;
+        min-width: 80px;
+    }
+
+    .tracker-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 3px solid #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem auto;
+        font-size: 1.1rem;
+        color: #94a3b8;
+        transition: all 0.4s ease;
+    }
+
+    .tracker-step.completed .tracker-icon {
+        border-color: #10b981;
+        background: #10b981;
+        color: #ffffff;
+    }
+
+    .tracker-step.active .tracker-icon {
+        border-color: #3b82f6;
+        color: #3b82f6;
+        background: #ffffff;
+        box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.2);
+        animation: pulse-active 1.5s infinite alternate;
+    }
+
+    @keyframes pulse-active {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.08); }
+    }
+
+    .tracker-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .tracker-step.completed .tracker-label {
+        color: #10b981;
+    }
+
+    .tracker-step.active .tracker-label {
+        color: #3b82f6;
+        font-weight: 700;
+    }
+
+    #deliveryMap {
+        height: 380px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Top Action Headers -->
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <a href="{{ url_for('customer.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-2">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+                <h4 class="fw-bold mb-1 text-slate-800 brand-font">Order Tracking Batch #ORD-{{ "%04d"|format(order.id) }}</h4>
+                <p class="text-muted small mb-0">Live production staging, cargo route trace, and material certificates.</p>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                {% if order.invoice %}
+                <a href="{{ url_for('customer.invoice_view', invoice_id=order.invoice.id) }}" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                    <i class="bi bi-receipt me-1"></i> View Invoice
+                </a>
+                {% endif %}
+                <span class="badge bg-success-subtle text-success px-3 py-2 fs-6 rounded-pill">
+                    Status: {{ order.status }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 3: Amazon Style Order Tracking -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="glass-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0 text-slate-800"><i class="bi bi-truck me-2 text-primary"></i>Logistics Workflow Tracking</h5>
+                <span class="fw-bold text-primary">Stage Progress: {{ order.progress_percentage }}%</span>
+            </div>
+
+            <!-- Amazon Timeline -->
+            <div class="amazon-tracker">
+                <div class="amazon-tracker-progress" style="width: {{ (current_index / (stages|length - 1)) * 100 }}%;"></div>
+                
+                {% for stg in stages %}
+                {% set idx = loop.index0 %}
+                <div class="tracker-step {% if idx < current_index %}completed{% elif idx == current_index %}active{% endif %}">
+                    <div class="tracker-icon">
+                        {% if idx < current_index %}
+                        <i class="bi bi-check-lg"></i>
+                        {% else %}
+                        <i class="bi {% if stg == 'Order Placed' %}bi-file-earmark-plus
+                                     {% elif stg == 'Order Confirmed' %}bi-check2-square
+                                     {% elif stg == 'Fabric Allocated' %}bi-box-seam
+                                     {% elif stg == 'Fabric Cutting' %}bi-scissors
+                                     {% elif stg == 'Stitching' %}bi-thread
+                                     {% elif stg == 'Quality Inspection' %}bi-patch-check
+                                     {% elif stg == 'Finishing' %}bi-fire
+                                     {% elif stg == 'Packing' %}bi-box
+                                     {% elif stg == 'Ready for Dispatch' %}bi-clipboard-check
+                                     {% elif stg == 'Out For Delivery' %}bi-truck
+                                     {% else %}bi-house-heart{% endif %}"></i>
+                        {% endif %}
+                    </div>
+                    <div class="tracker-label">{{ stg }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Size-wise Production Progress -->
+            <div class="mt-4 border-top pt-4">
+                <h6 class="fw-bold mb-3 text-slate-800"><i class="bi bi-rulers me-2 text-primary"></i>Size-wise Production Progress</h6>
+                <div class="row g-3">
+                    {% for sq in order.size_quantities %}
+                    <div class="col-md-3 col-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-primary fs-6">Size {{ sq.size }}</span>
+                                <span class="fw-bold text-slate-800 small">{{ sq.completed_quantity }} / {{ sq.planned_quantity }} pcs</span>
+                            </div>
+                            {% set size_pct = (sq.completed_quantity / sq.planned_quantity * 100)|int if sq.planned_quantity > 0 else 0 %}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 6px;">
+                                    <div class="progress-bar bg-success" style="width: {{ size_pct }}%;"></div>
+                                </div>
+                                <small class="fw-bold">{{ size_pct }}%</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 4 & 5: Live Google Maps & AI Delivery Prediction -->
+<div class="row g-4 mb-4">
+    <!-- Google Maps Staging -->
+    <div class="col-lg-7">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-2 text-slate-800"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Live Route Location Tracking</h5>
+            <p class="text-muted small mb-3">Freight cargo vehicle routing GPS feed updated in real-time from the factory floor logistics engine.</p>
+            
+            <div id="deliveryMap" class="mb-3"></div>
+
+            <div class="row g-2 text-sm">
+                <div class="col-6 border-end">
+                    <span class="text-muted d-block small">Start Address (Factory)</span>
+                    <strong class="text-slate-800" id="mapSource">StitchTech Bangalore Production Cluster</strong>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted d-block small">Destination Address</span>
+                    <strong class="text-slate-800" id="mapDest">Chennai Warehouse Terminal A</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Delivery Prediction Card -->
+    <div class="col-lg-5">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0 text-slate-800"><i class="bi bi-cpu-fill text-primary me-2"></i>AI Delivery Prediction</h5>
+                <span class="badge bg-teal-subtle text-teal" style="background: rgba(13, 148, 136, 0.2); color: #0d9488;"><i class="bi bi-robot"></i> Predictive AI</span>
+            </div>
+
+            <div class="vstack gap-3 mb-4">
+                <div class="p-3 rounded bg-light border d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small d-block">Estimated Date</span>
+                        <strong class="fs-5 text-slate-800">{{ predicted_delivery_date }}</strong>
+                    </div>
+                    <div class="text-end">
+                        <span class="text-muted small d-block">Expected Time</span>
+                        <strong class="fs-5 text-slate-800">03:30 PM</strong>
+                    </div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="p-2 border rounded text-center">
+                            <span class="text-muted small d-block">Confidence</span>
+                            <strong class="text-success fs-5">{{ 100 - risk_info.get('probability', 12) }}%</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 border rounded text-center">
+                            <span class="text-muted small d-block">Risk Level</span>
+                            <strong class="text-{{ risk_info.get('color', 'success') }} fs-5">{{ risk_info.get('risk_level', 'Low') }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded border">
+                    <div class="fw-bold text-slate-800 small mb-2"><i class="bi bi-cloud-sun me-1"></i> AI Logistic Staging Analysis</div>
+                    <div class="small text-muted mb-1">Delay Prediction: <strong>{{ risk_info.get('message', 'No delay expected.') }}</strong></div>
+                    <div class="small text-muted mb-1">Weather Impact: <strong>Clear Skies (Minimal Delay Risk)</strong></div>
+                    <div class="small text-muted mb-1">Traffic Congestion Index: <strong>0.2 (Optimal Cargo Velocity)</strong></div>
+                    <div class="small text-muted">Machine Downtime Impact: <strong>0.0 (Zero floor delays recorded)</strong></div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div>
+                <strong class="text-slate-800 small d-block mb-2">AI Optimization Recommendations:</strong>
+                <div class="p-2 bg-primary-subtle text-primary rounded small border border-primary-subtle">
+                    <i class="bi bi-info-circle-fill me-1"></i> Floor logistics cleared for instant freight pickup. Dispatch schedules are running 3 hours ahead of target.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 6 & 7: Order Details & Production Visualization -->
+<div class="row g-4 mb-4">
+    <!-- Order Details -->
+    <div class="col-md-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-info-circle me-2 text-primary"></i>Batch Order Specifications</h5>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle text-sm mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Garment Name</td>
+                            <td class="fw-bold text-slate-800">{{ order.garment_type }} Batch</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Quantity</td>
+                            <td class="fw-bold text-slate-800">{{ "{:,}".format(order.quantity) }} units</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Color Code</td>
+                            <td class="fw-bold text-slate-800">Classic Blue / Indigo Dye</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Fabric Composition</td>
+                            <td class="fw-bold text-slate-800">Premium Combed Yarn / Organic Cotton</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Batch Size Scale</td>
+                            <td class="fw-bold text-slate-800">Standard Medium (M)</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Order Placed Date</td>
+                            <td class="fw-bold text-slate-800">{{ order.order_date.strftime('%B %d, %Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Production Supervisor</td>
+                            <td class="fw-bold text-slate-800">Robert Sterling (Operations Lead)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Production Visualization -->
+    <div class="col-md-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-cpu me-2 text-primary"></i>Factory Floor Line Progress</h5>
+            <div class="vstack gap-3">
+                <div>
+                    <div class="d-flex justify-content-between text-xs mb-1">
+                        <span class="text-slate-600">Fabric Preparation</span>
+                        <strong class="text-slate-800">100%</strong>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between text-xs mb-1">
+                        <span class="text-slate-600">Cutting Lines</span>
+                        <strong class="text-slate-800">{% if order.progress_percentage > 30 %}100%{% else %}{{ (order.progress_percentage * 3)|int }}%{% endif %}</strong>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-{% if order.progress_percentage > 30 %}success{% else %}primary{% endif %}" style="width: {% if order.progress_percentage > 30 %}100%{% else %}{{ (order.progress_percentage * 3)|int }}%{% endif %}%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between text-xs mb-1">
+                        <span class="text-slate-600">Stitching Lines</span>
+                        <strong class="text-slate-800">{% if order.progress_percentage > 60 %}100%{% elif order.progress_percentage > 30 %}{{ ((order.progress_percentage - 30) * 3.3)|int }}%{% else %}0%{% endif %}</strong>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-{% if order.progress_percentage > 60 %}success{% else %}primary{% endif %}" style="width: {% if order.progress_percentage > 60 %}100%{% elif order.progress_percentage > 30 %}{{ ((order.progress_percentage - 30) * 3.3)|int }}%{% else %}0%{% endif %}%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between text-xs mb-1">
+                        <span class="text-slate-600">Quality Check Line</span>
+                        <strong class="text-slate-800">{% if order.progress_percentage > 85 %}100%{% elif order.progress_percentage > 60 %}{{ ((order.progress_percentage - 60) * 4)|int }}%{% else %}0%{% endif %}</strong>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-{% if order.progress_percentage > 85 %}success{% else %}primary{% endif %}" style="width: {% if order.progress_percentage > 85 %}100% %{% elif order.progress_percentage > 60 %}{{ ((order.progress_percentage - 60) * 4)|int }}%{% else %}0%{% endif %}%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between text-xs mb-1">
+                        <span class="text-slate-600">Packing & Dispatch</span>
+                        <strong class="text-slate-800">{% if order.progress_percentage == 100 %}100%{% elif order.progress_percentage > 85 %}{{ ((order.progress_percentage - 85) * 6.6)|int }}%{% else %}0%{% endif %}</strong>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-primary" style="width: {% if order.progress_percentage == 100 %}100%{% elif order.progress_percentage > 85 %}{{ ((order.progress_percentage - 85) * 6.6)|int }}%{% else %}0%{% endif %}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 9 & 10: Documents Download & Payments Widget -->
+<div class="row g-4">
+    <!-- Documents -->
+    <div class="col-md-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Batch Verification Documents</h5>
+            <div class="vstack gap-2">
+                <a href="{{ url_for('customer.download_document', doc_type='invoice', order_id=order.id) }}" class="btn btn-light border text-start d-flex align-items-center justify-content-between p-3 rounded">
+                    <div>
+                        <i class="bi bi-file-earmark-pdf text-danger fs-4 me-2 align-middle"></i>
+                        <span class="fw-bold small text-slate-700">Commercial Invoice</span>
+                    </div>
+                    <i class="bi bi-download text-primary"></i>
+                </a>
+                <a href="{{ url_for('customer.download_document', doc_type='po', order_id=order.id) }}" class="btn btn-light border text-start d-flex align-items-center justify-content-between p-3 rounded">
+                    <div>
+                        <i class="bi bi-file-earmark-pdf text-danger fs-4 me-2 align-middle"></i>
+                        <span class="fw-bold small text-slate-700">Purchase Order Voucher</span>
+                    </div>
+                    <i class="bi bi-download text-primary"></i>
+                </a>
+                <a href="{{ url_for('customer.download_document', doc_type='challan', order_id=order.id) }}" class="btn btn-light border text-start d-flex align-items-center justify-content-between p-3 rounded">
+                    <div>
+                        <i class="bi bi-file-earmark-pdf text-danger fs-4 me-2 align-middle"></i>
+                        <span class="fw-bold small text-slate-700">Delivery Challan Note</span>
+                    </div>
+                    <i class="bi bi-download text-primary"></i>
+                </a>
+                <a href="{{ url_for('customer.download_document', doc_type='cert', order_id=order.id) }}" class="btn btn-light border text-start d-flex align-items-center justify-content-between p-3 rounded">
+                    <div>
+                        <i class="bi bi-file-earmark-pdf text-danger fs-4 me-2 align-middle"></i>
+                        <span class="fw-bold small text-slate-700">QA Conformity Certificate</span>
+                    </div>
+                    <i class="bi bi-download text-primary"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments -->
+    <div class="col-md-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-credit-card-2-front-fill text-success me-2"></i>Invoice Billing & Ledger</h5>
+            
+            <div class="vstack gap-3 mb-4">
+                <div class="row g-2 text-center text-sm">
+                    <div class="col-4 border-end">
+                        <span class="text-muted d-block small">Invoice Value</span>
+                        <strong class="text-slate-800 fs-5">₹{{ "{:,.2f}".format(payment_info.total_amount) }}</strong>
+                    </div>
+                    <div class="col-4 border-end">
+                        <span class="text-muted d-block small">Paid Amount</span>
+                        <strong class="text-success fs-5">₹{{ "{:,.2f}".format(payment_info.paid_amount) }}</strong>
+                    </div>
+                    <div class="col-4">
+                        <span class="text-muted d-block small">Balance Due</span>
+                        <strong class="text-danger fs-5">₹{{ "{:,.2f}".format(payment_info.balance_amount) }}</strong>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded border text-center">
+                    <span class="text-muted small d-block">Ledger Status</span>
+                    <strong class="text-primary">{{ payment_info.status }}</strong>
+                </div>
+            </div>
+
+            {% if order.invoice %}
+            <div class="mb-3">
+                <a href="{{ url_for('customer.invoice_view', invoice_id=order.invoice.id) }}" class="btn btn-outline-info w-100 rounded-pill py-2 fw-semibold">
+                    <i class="bi bi-receipt me-1"></i> View Invoice (#{{ order.invoice.invoice_number }})
+                </a>
+            </div>
+            {% endif %}
+
+            <button class="btn btn-success w-100 rounded-pill py-2.5 fw-bold shadow-sm" onclick="alert('Card processing network cleared. You will be redirected to payment gateway.')">
+                <i class="bi bi-shield-check me-2"></i> Process Remaining Balance
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize Map
+        const map = L.map('deliveryMap').setView([{{ maps_data.vehicle.lat }}, {{ maps_data.vehicle.lng }}], 7);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Markers
+        const factoryMarker = L.marker([{{ maps_data.factory.lat }}, {{ maps_data.factory.lng }}])
+            .addTo(map)
+            .bindPopup("<b>Factory Location</b><br>StitchTech Garment Plant")
+            .openPopup();
+
+        const destMarker = L.marker([{{ maps_data.destination.lat }}, {{ maps_data.destination.lng }}])
+            .addTo(map)
+            .bindPopup("<b>Destination Address</b><br>Chennai Port Terminal");
+
+        // Vehicle Marker
+        const vehicleMarker = L.marker([{{ maps_data.vehicle.lat }}, {{ maps_data.vehicle.lng }}])
+            .addTo(map)
+            .bindPopup("<b>Logistics Cargo Vehicle</b><br>Status: Out for Delivery")
+            .openPopup();
+
+        // Route Polyline
+        const pathLine = L.polyline([
+            [{{ maps_data.factory.lat }}, {{ maps_data.factory.lng }}],
+            [{{ maps_data.destination.lat }}, {{ maps_data.destination.lng }}]
+        ], {color: 'blue', weight: 4, dashArray: '8, 8'}).addTo(map);
+
+        map.fitBounds(pathLine.getBounds());
+    });
+</script>
+{% endblock %}

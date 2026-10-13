@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice Ledger & Payments - StitchTech ERP{% endblock %}
+{% block header_title %}Accounts & Billing Ledger{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Billing Overview -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-wallet2 text-primary me-2"></i>Account Balance Sheet</h5>
+            
+            <div class="row g-2 text-center mb-4">
+                <div class="col-6 border-end">
+                    <span class="text-muted d-block small">Total Payments Cleared</span>
+                    <strong class="text-success fs-4">₹{{ "{:,.2f}".format(total_paid) }}</strong>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted d-block small">Outstanding Balances</span>
+                    <strong class="text-danger fs-4">₹{{ "{:,.2f}".format(total_due) }}</strong>
+                </div>
+            </div>
+
+            <div class="p-3 bg-light border rounded text-center mb-3">
+                <span class="text-muted small d-block mb-1">Corporate Credit Mode</span>
+                <strong class="text-slate-800">Net 30 Billing Days Enabled</strong>
+            </div>
+            
+            <button class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold shadow-sm" onclick="alert('Balance settlement gateway cleared. Contact account lead for wiring checks.')">
+                <i class="bi bi-credit-card-2-front-fill me-2"></i> Wire Settlement Request
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Line Ledger -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-patch-check-fill text-success me-2"></i>GST & Tax Verification</h5>
+            <div class="vstack gap-2 text-sm text-slate-600">
+                <div class="d-flex justify-content-between p-2 rounded bg-light">
+                    <span>Tax Jurisdiction:</span>
+                    <strong class="text-slate-800">State SGST / CGST</strong>
+                </div>
+                <div class="d-flex justify-content-between p-2 rounded bg-light">
+                    <span>GST Registration:</span>
+                    <strong class="text-slate-800">{{ current_user.gst_number or 'Not Configured' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between p-2 rounded bg-light">
+                    <span>Invoicing Mode:</span>
+                    <strong class="text-slate-800">Digital Cryptographic Signatures</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice History Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-receipt text-primary me-2"></i>Commercial Invoice History</h5>
+            {% if payments %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Invoice ID</th>
+                            <th>Garment Description</th>
+                            <th>Quantity</th>
+                            <th>Total Cost</th>
+                            <th>Paid Amount</th>
+                            <th>Balance Due</th>
+                            <th>Invoice Date</th>
+                            <th>Status</th>
+                            <th class="text-end">Verification</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pay in payments %}
+                        <tr>
+                            <td class="fw-bold text-primary">INV-{{ "%04d"|format(pay.order_id) }}</td>
+                            <td>{{ pay.garment_type }} Batch</td>
+                            <td>{{ "{:,}".format(pay.quantity) }} units</td>
+                            <td class="fw-bold">₹{{ "{:,.2f}".format(pay.total) }}</td>
+                            <td class="text-success">₹{{ "{:,.2f}".format(pay.paid) }}</td>
+                            <td class="text-danger">₹{{ "{:,.2f}".format(pay.balance) }}</td>
+                            <td>{{ pay.date }}</td>
+                            <td>
+                                <span class="badge bg-{% if pay.balance == 0 %}success{% else %}warning text-dark{% endif %}">
+                                    {{ pay.status }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('customer.download_document', doc_type='invoice', order_id=pay.order_id) }}" class="btn btn-sm btn-light border">
+                                    <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> Invoice PDF
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-receipt-cutoff fs-2 d-block mb-1"></i>
+                <span>No invoice history available.</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

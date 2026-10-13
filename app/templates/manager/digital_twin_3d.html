@@ -1,0 +1,1049 @@
+{% extends "base.html" %}
+
+{% block title %}AI Production Estimation & Smart Fabric Consumption{% endblock %}
+{% block header_title %}AI Production Planner & Material Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium SAP/Dynamics Dark ERP Theme */
+    body {
+        background-color: var(--bg-main) !important;
+        color: var(--text-main) !important;
+    }
+
+    .main-content {
+        background-color: var(--bg-main) !important;
+    }
+
+    .brand-font {
+        font-family: 'Outfit', sans-serif;
+    }
+
+    /* Enterprise Glassmorphism & Card Design */
+    .enterprise-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        color: var(--text-main);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .enterprise-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    }
+
+    .enterprise-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(30, 58, 138, 0.25);
+    }
+
+    /* Form Elements */
+    .form-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        margin-bottom: 0.4rem;
+    }
+
+    .form-select, .form-control {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: #1e293b;
+        color: var(--text-main);
+        padding: 0.55rem 0.75rem;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #3b82f6;
+        background-color: #0f172a;
+        color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    /* Metric Cards */
+    .metric-box {
+        padding: 1.25rem;
+        border-radius: 10px;
+        background: #1e293b;
+        border: 1px solid var(--border-color);
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+
+    .metric-box i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .metric-value {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #f8fafc;
+    }
+
+    .metric-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
+        margin-top: 0.25rem;
+    }
+
+    /* Timeline Styles */
+    .flow-timeline {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .flow-timeline::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #334155;
+        z-index: 1;
+    }
+
+    .flow-timeline-progress {
+        position: absolute;
+        top: 20px;
+        left: 0;
+        height: 4px;
+        background: #3b82f6;
+        z-index: 2;
+        transition: width 1s ease-in-out;
+        width: 0%;
+    }
+
+    .flow-step {
+        position: relative;
+        z-index: 3;
+        text-align: center;
+        width: 80px;
+    }
+
+    .flow-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #1e293b;
+        border: 3px solid #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem auto;
+        font-size: 1.1rem;
+        color: #cbd5e1;
+        transition: all 0.4s ease;
+    }
+
+    .flow-step.active .flow-icon {
+        border-color: #3b82f6;
+        color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+    }
+
+    .flow-step.completed .flow-icon {
+        border-color: #10b981;
+        background: #10b981;
+        color: #ffffff;
+    }
+
+    .flow-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #cbd5e1;
+        white-space: nowrap;
+    }
+
+    /* AI Recommendation Card */
+    .ai-rec-card {
+        border-left: 4px solid #3b82f6;
+        background: rgba(2, 132, 199, 0.12);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        color: #f8fafc;
+        transition: all 0.2s ease;
+    }
+
+    .ai-rec-card:hover {
+        background: rgba(2, 132, 199, 0.2);
+    }
+
+    /* Processing Overlay */
+    .spinner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(11, 17, 32, 0.85);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .spinner-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Header Banner -->
+    <div class="col-12">
+        <div class="enterprise-header p-4 text-white d-flex align-items-center justify-content-between">
+            <div>
+                <span class="badge bg-teal-subtle text-teal px-3 py-1 rounded-pill mb-2 fw-bold" style="background: rgba(13, 148, 136, 0.2); color: #2dd4bf;"><i class="bi bi-cpu-fill me-1"></i> AI MANUFACTURING INTELLIGENCE</span>
+                <h3 class="fw-bold mb-1 brand-font">AI Production Estimation & Smart Fabric Consumption</h3>
+                <p class="text-white-50 small mb-0">AI-powered production planning, material estimation, cost prediction and resource optimization.</p>
+            </div>
+            <div class="d-none d-md-block text-end">
+                <span class="text-white-50 d-block small">System Active Status</span>
+                <span class="badge bg-success px-3 py-1 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Factory Online</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- SECTION 1: Order Simulation Panel -->
+    <div class="col-lg-4">
+        <div class="enterprise-card p-4 h-100 position-relative">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-sliders me-2 text-primary"></i>Order Simulation Panel</h5>
+            <p class="text-muted small mb-4">Configure the target garment specifications to run the AI production and fabric consumption model.</p>
+            
+            <form id="simulationForm" onsubmit="generateAIPlan(event)">
+                <div class="mb-3">
+                    <label class="form-label">Product Type</label>
+                    <select class="form-select" id="productType" required>
+                        <option value="Shirts">Shirts</option>
+                        <option value="Denim">Denim (Jeans)</option>
+                        <option value="T-Shirts" selected>T-Shirts</option>
+                        <option value="Dresses">Dresses</option>
+                        <option value="Jackets">Jackets</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Garment Category</label>
+                    <select class="form-select" id="garmentCategory" required>
+                        <option value="Casual" selected>Casual Wear</option>
+                        <option value="Formal">Formal Wear</option>
+                        <option value="Sportswear">Sportswear</option>
+                        <option value="Outerwear">Outerwear</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Quantity (Units)</label>
+                    <input type="number" class="form-control" id="orderQuantity" min="50" max="50000" value="2500" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Fabric Type</label>
+                    <select class="form-select" id="fabricType" required>
+                        <option value="Cotton" selected>Cotton</option>
+                        <option value="Denim">Denim</option>
+                        <option value="Linen">Linen</option>
+                        <option value="Silk">Silk</option>
+                        <option value="Polyester">Polyester</option>
+                    </select>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Size</label>
+                        <select class="form-select" id="garmentSize" required>
+                            <option value="S">S</option>
+                            <option value="M" selected>M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                            <option value="XXL">XXL</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Color</label>
+                        <select class="form-select" id="garmentColor" required>
+                            <option value="Classic White">Classic White</option>
+                            <option value="Royal Blue">Royal Blue</option>
+                            <option value="Slate Black">Slate Black</option>
+                            <option value="Rose Pink">Rose Pink</option>
+                            <option value="Olive Green">Olive Green</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-6">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" id="orderPriority" required>
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Delivery Date</label>
+                        <input type="date" class="form-control" id="deliveryDate" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold shadow-sm">
+                    <i class="bi bi-magic me-2"></i> Generate AI Production Plan
+                </button>
+            </form>
+
+            <!-- Loading Spinner Overlay -->
+            <div id="loadingOverlay" class="spinner-overlay">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                    <p class="mt-3 fw-bold text-slate-700">AI Model Estimating Production Paths...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: AI Production Estimation KPIs -->
+    <div class="col-lg-8">
+        <div class="enterprise-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-cpu me-2 text-primary"></i>AI Production Estimation</h5>
+            <p class="text-muted small mb-4">Optimized predictions for material quantities, required factory resources, and schedules generated by the StitchTech AI model.</p>
+            
+            <div class="row g-3">
+                <div class="col-md-3 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-scissors text-primary"></i>
+                        <div class="metric-value" id="kpiFabric">0</div>
+                        <div class="metric-title">Fabric Required</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-thread text-info"></i>
+                        <div class="metric-value" id="kpiThread">0</div>
+                        <div class="metric-title">Thread Required</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-tag text-success"></i>
+                        <div class="metric-value" id="kpiLabels">0</div>
+                        <div class="metric-title">Labels Required</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-box-seam text-warning"></i>
+                        <div class="metric-value" id="kpiCovers">0</div>
+                        <div class="metric-title">Packing Covers</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-boxes text-danger"></i>
+                        <div class="metric-value" id="kpiCartons">0</div>
+                        <div class="metric-title">Carton Boxes</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-people text-primary"></i>
+                        <div class="metric-value" id="kpiWorkers">0</div>
+                        <div class="metric-title">Workers Required</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-gear-wide-connected text-success"></i>
+                        <div class="metric-value" id="kpiMachines">0</div>
+                        <div class="metric-title">Machines Required</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-calendar-event text-info"></i>
+                        <div class="metric-value" id="kpiDays">0</div>
+                        <div class="metric-title">Est. Production Days</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-currency-rupee text-danger"></i>
+                        <div class="metric-value" id="kpiCost">₹0</div>
+                        <div class="metric-title">Est. Production Cost</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-6">
+                    <div class="metric-box">
+                        <i class="bi bi-cash-stack text-success"></i>
+                        <div class="metric-value" id="kpiProfit">₹0</div>
+                        <div class="metric-title">Expected Profit</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-12">
+                    <div class="metric-box">
+                        <i class="bi bi-trash text-warning"></i>
+                        <div class="metric-value" id="kpiWaste">0%</div>
+                        <div class="metric-title">Fabric Waste Percentage</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 3 & 4: Smart Inventory & AI Recommendations -->
+<div class="row g-4 mb-4">
+    <!-- SECTION 3: Smart Inventory Check -->
+    <div class="col-lg-6">
+        <div class="enterprise-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-box-seam me-2 text-primary"></i>Smart Inventory Check</h5>
+            <p class="text-muted small mb-4">AI comparing required fabric volume with real-time warehouse available quantities.</p>
+
+            <div class="vstack gap-3">
+                <div class="d-flex align-items-center justify-content-between p-3 rounded bg-light border">
+                    <div>
+                        <span class="text-muted small d-block">Available Fabric Stock</span>
+                        <strong class="fs-5 text-slate-800" id="invAvailable">0 meters</strong>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Required Fabric Stock</span>
+                        <strong class="fs-5 text-slate-800" id="invRequired">0 meters</strong>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded border d-flex align-items-center justify-content-between" id="purchaseStatusBox" style="background-color: #1e293b;">
+                    <div>
+                        <span class="text-muted small d-block">Need to Purchase</span>
+                        <strong class="fs-4 text-slate-800" id="invPurchase">0 meters</strong>
+                    </div>
+                    <span id="invBadge" class="badge bg-success px-3 py-2 fs-6">Sufficient Stock</span>
+                </div>
+
+                <div>
+                    <span class="text-muted small d-block mb-1">Fabric Coverage Meter</span>
+                    <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div id="invProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4: AI Recommendation Panel -->
+    <div class="col-lg-6">
+        <div class="enterprise-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-chat-left-quote me-2 text-primary"></i>AI Recommendation Panel</h5>
+            <p class="text-muted small mb-4">Strategic floor and capacity alerts based on estimated workload and resource availability.</p>
+
+            <div class="vstack gap-2" id="aiRecommendationsContainer">
+                <div class="alert alert-secondary mb-0 py-4 text-center">
+                    <i class="bi bi-robot fs-3 text-muted mb-2 d-block"></i>
+                    <span>Fill form and run simulation to generate AI insights.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 5: Production Timeline Flow -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="enterprise-card p-4">
+            <h5 class="fw-bold mb-1 text-slate-800"><i class="bi bi-diagram-3 me-2 text-primary"></i>Production Flow Timeline</h5>
+            <p class="text-muted small mb-4">Projected workflow stages for the active simulation run.</p>
+
+            <div class="flow-timeline">
+                <div id="timelineProgress" class="flow-timeline-progress"></div>
+                
+                <div class="flow-step" id="step1">
+                    <div class="flow-icon"><i class="bi bi-cart"></i></div>
+                    <div class="flow-label">Customer Order</div>
+                </div>
+                <div class="flow-step" id="step2">
+                    <div class="flow-icon"><i class="bi bi-box-seam"></i></div>
+                    <div class="flow-label">Fabric Allocation</div>
+                </div>
+                <div class="flow-step" id="step3">
+                    <div class="flow-icon"><i class="bi bi-scissors"></i></div>
+                    <div class="flow-label">Cutting</div>
+                </div>
+                <div class="flow-step" id="step4">
+                    <div class="flow-icon"><i class="bi bi-thread"></i></div>
+                    <div class="flow-label">Stitching</div>
+                </div>
+                <div class="flow-step" id="step5">
+                    <div class="flow-icon"><i class="bi bi-fire"></i></div>
+                    <div class="flow-label">Ironing</div>
+                </div>
+                <div class="flow-step" id="step6">
+                    <div class="flow-icon"><i class="bi bi-patch-check"></i></div>
+                    <div class="flow-label">Quality Check</div>
+                </div>
+                <div class="flow-step" id="step7">
+                    <div class="flow-icon"><i class="bi bi-box"></i></div>
+                    <div class="flow-label">Packing</div>
+                </div>
+                <div class="flow-step" id="step8">
+                    <div class="flow-icon"><i class="bi bi-truck"></i></div>
+                    <div class="flow-label">Dispatch</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 6: Production Cost Breakdown (Chart.js) -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="enterprise-card p-4 h-100">
+            <h5 class="fw-bold mb-2 text-slate-800"><i class="bi bi-pie-chart me-2 text-primary"></i>Production Cost Breakdown</h5>
+            <p class="text-muted small mb-4">Cost analysis categorized by material and operational resources.</p>
+            
+            <div style="height: 250px; position: relative;">
+                <canvas id="costBreakdownChart"></canvas>
+            </div>
+            
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                <span class="fw-semibold text-slate-700">Total Production Cost:</span>
+                <span class="fs-4 fw-bold text-danger" id="costTotalLabel">₹0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 8: AI Insights -->
+    <div class="col-lg-6">
+        <div class="enterprise-card p-4 h-100">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-activity me-2 text-primary"></i>AI Insights & Efficiency Indicators</h5>
+            <p class="text-muted small mb-4">Predicted utilization scores and overall risk ratings of the active workflow configuration.</p>
+            
+            <div class="vstack gap-3">
+                <div>
+                    <div class="d-flex justify-content-between text-sm mb-1">
+                        <span class="fw-semibold text-slate-700">Production Line Efficiency</span>
+                        <span class="fw-bold text-primary" id="insightEff">0%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div id="barEff" class="progress-bar bg-primary" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between text-sm mb-1">
+                        <span class="fw-semibold text-slate-700">Worker Utilization</span>
+                        <span class="fw-bold text-success" id="insightWork">0%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div id="barWork" class="progress-bar bg-success" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between text-sm mb-1">
+                        <span class="fw-semibold text-slate-700">Machine Utilization</span>
+                        <span class="fw-bold text-info" id="insightMach">0%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div id="barMach" class="progress-bar bg-info" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between text-sm mb-1">
+                        <span class="fw-semibold text-slate-700">Inventory Health Index</span>
+                        <span class="fw-bold text-warning" id="insightInv">0%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div id="barInv" class="progress-bar bg-warning" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mt-2 pt-2 border-top">
+                    <div class="col-4 text-center border-end">
+                        <span class="text-muted small d-block">Delivery Confidence</span>
+                        <strong class="text-slate-800" id="insightConf">0%</strong>
+                    </div>
+                    <div class="col-4 text-center border-end">
+                        <span class="text-muted small d-block">Production Risk</span>
+                        <strong class="text-success" id="insightRisk">-</strong>
+                    </div>
+                    <div class="col-4 text-center">
+                        <span class="text-muted small d-block">Overall Score</span>
+                        <strong class="text-primary fs-5" id="insightScore">-</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 7: Material Consumption Detail Grid -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="enterprise-card p-4">
+            <h5 class="fw-bold mb-3 text-slate-800"><i class="bi bi-box-seam me-2 text-primary"></i>Raw Material Ledger Verification</h5>
+            <p class="text-muted small mb-4">Breakdown comparing required quantities to available stock for all components.</p>
+            
+            <div class="row g-3" id="materialsGrid">
+                <!-- Javascript populated material ledger cards -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 6: Competitor & Social Market Insight Integration (Future placeholder) -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="enterprise-card p-4 border border-dashed">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0 text-slate-800"><i class="bi bi-globe me-2 text-indigo"></i>Competitor & Social Market Insights</h5>
+                <span class="badge bg-secondary">System Integration Placeholder</span>
+            </div>
+            <div class="row g-3 text-muted">
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded border">
+                        <div class="fw-bold text-slate-700 mb-1"><i class="bi bi-tiktok me-1 text-danger"></i> Social Media Trend Velocity</div>
+                        <small>Auto-scrapes apparel hashtags to cross-reference design models dynamically.</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded border">
+                        <div class="fw-bold text-slate-700 mb-1"><i class="bi bi-chat-heart me-1 text-primary"></i> Feedback Sentiment Analysis</div>
+                        <small>E-commerce comments and customer fits mapped to pattern markers.</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded border">
+                        <div class="fw-bold text-slate-700 mb-1"><i class="bi bi-shop me-1 text-success"></i> Market Share Benchmarks</div>
+                        <small>Competitor raw cotton buying patterns and shipping cargo logs indicators.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Set default date to 14 days out
+    document.addEventListener("DOMContentLoaded", function() {
+        const today = new Date();
+        const futureDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+        document.getElementById("deliveryDate").value = futureDate.toISOString().split('T')[0];
+        
+        // Initial plan load
+        generateAIPlan(null);
+    });
+
+    let costChartInstance = null;
+
+    // Simulated Stock Database
+    const stockDatabase = {
+        'Cotton': 8000,
+        'Denim': 4500,
+        'Linen': 3000,
+        'Silk': 1200,
+        'Polyester': 9000,
+        'Thread': 120, // spools
+        'Buttons': 10000,
+        'Labels': 8000,
+        'Packing Covers': 9000,
+        'Cartons': 300
+    };
+
+    function animateNumber(elementId, targetVal, isPrice = false, suffix = '') {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        let start = 0;
+        const duration = 1200;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // easeOutQuad
+            const ease = progress * (2 - progress);
+            const currentVal = Math.floor(ease * targetVal);
+
+            if (isPrice) {
+                element.innerText = '₹' + currentVal.toLocaleString();
+            } else {
+                element.innerText = currentVal.toLocaleString() + suffix;
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                if (isPrice) {
+                    element.innerText = '₹' + targetVal.toLocaleString();
+                } else {
+                    element.innerText = targetVal.toLocaleString() + suffix;
+                }
+            }
+        }
+        requestAnimationFrame(update);
+    }
+
+    function generateAIPlan(event) {
+        if (event) event.preventDefault();
+
+        // Show overlay spinner to simulate AI computation
+        const overlay = document.getElementById("loadingOverlay");
+        overlay.classList.add("active");
+
+        setTimeout(() => {
+            overlay.classList.remove("active");
+            calculateModelOutputs();
+        }, 1200);
+    }
+
+    function calculateModelOutputs() {
+        // 1. Gather Inputs
+        const productType = document.getElementById("productType").value;
+        const garmentCategory = document.getElementById("garmentCategory").value;
+        const quantity = parseInt(document.getElementById("orderQuantity").value);
+        const fabricType = document.getElementById("fabricType").value;
+        const size = document.getElementById("garmentSize").value;
+        const priority = document.getElementById("orderPriority").value;
+        const deliveryDateVal = document.getElementById("deliveryDate").value;
+
+        // Calculate available days until delivery
+        const today = new Date();
+        const deliveryDate = new Date(deliveryDateVal);
+        const diffTime = Math.abs(deliveryDate - today);
+        const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+        // 2. Realistic Garment Formulas
+        // Fabric Required per Product
+        const baseRates = {
+            'Shirts': 1.7,
+            'Denim': 1.5,
+            'T-Shirts': 1.2,
+            'Dresses': 2.5,
+            'Jackets': 2.2
+        };
+        const sizeFactors = {
+            'S': 0.9,
+            'M': 1.0,
+            'L': 1.1,
+            'XL': 1.2,
+            'XXL': 1.3
+        };
+        const fabricWasteRates = {
+            'Cotton': 8,
+            'Denim': 10,
+            'Linen': 12,
+            'Silk': 15,
+            'Polyester': 6
+        };
+
+        const baseRate = baseRates[productType] || 1.2;
+        const sizeFactor = sizeFactors[size] || 1.0;
+        const wasteRate = fabricWasteRates[fabricType] || 8;
+
+        const baseFabric = quantity * baseRate * sizeFactor;
+        const wasteFabric = baseFabric * (wasteRate / 100);
+        const totalFabric = Math.round(baseFabric + wasteFabric);
+
+        // Threads, Labels, Packing Covers, Cartons
+        const threadRatio = productType === 'Denim' ? 50 : (productType === 'Jackets' ? 40 : 80);
+        const totalThreadSpools = Math.ceil(quantity / threadRatio);
+        const totalLabels = quantity;
+        const totalCovers = quantity;
+        const totalCartons = Math.ceil(quantity / 50);
+
+        // Workers & Machines Calculation based on SAM
+        const garmentSAMs = {
+            'Shirts': 22,
+            'Denim': 35,
+            'T-Shirts': 15,
+            'Dresses': 30,
+            'Jackets': 45
+        };
+        const sam = garmentSAMs[productType] || 20;
+        const totalHoursNeeded = (quantity * sam) / 60;
+        // 8 hours per day, 85% efficiency
+        const targetDays = Math.min(diffDays, Math.ceil(totalHoursNeeded / (8 * 0.85)));
+        const workersNeeded = Math.ceil(totalHoursNeeded / (targetDays * 8 * 0.85));
+        const machinesNeeded = Math.ceil(workersNeeded * 0.85);
+
+        // Costs calculation
+        const fabricPrices = {
+            'Cotton': 5,
+            'Denim': 8,
+            'Linen': 11,
+            'Silk': 26,
+            'Polyester': 4
+        };
+        const fabricPrice = fabricPrices[fabricType] || 5;
+        const fabricCost = totalFabric * fabricPrice;
+        const laborCost = workersNeeded * targetDays * 8 * 14; // $14/hour
+        const machineCost = machinesNeeded * targetDays * 6; // $6/day electricity & upkeep
+        const accessoriesCost = (totalLabels * 0.12) + (totalThreadSpools * 4) + (totalCovers * 0.06) + (totalCartons * 2.5);
+        const packingCost = quantity * 0.15;
+        const overheadCost = (fabricCost + laborCost + machineCost + accessoriesCost) * 0.12;
+        const totalCost = Math.round(fabricCost + laborCost + machineCost + accessoriesCost + packingCost + overheadCost);
+
+        // Revenues
+        const retailPrices = {
+            'Shirts': 45,
+            'Denim': 65,
+            'T-Shirts': 25,
+            'Dresses': 85,
+            'Jackets': 120
+        };
+        const retailPrice = retailPrices[productType] || 30;
+        const totalRevenue = quantity * retailPrice;
+        const expectedProfit = Math.max(0, totalRevenue - totalCost);
+
+        // 3. Update Estimation KPIs
+        animateNumber("kpiFabric", totalFabric, false, " m");
+        animateNumber("kpiThread", totalThreadSpools, false, " spools");
+        animateNumber("kpiLabels", totalLabels);
+        animateNumber("kpiCovers", totalCovers);
+        animateNumber("kpiCartons", totalCartons);
+        animateNumber("kpiWorkers", workersNeeded);
+        animateNumber("kpiMachines", machinesNeeded);
+        animateNumber("kpiDays", targetDays);
+        animateNumber("kpiCost", totalCost, true);
+        animateNumber("kpiProfit", expectedProfit, true);
+        document.getElementById("kpiWaste").innerText = wasteRate + "%";
+
+        // 4. Smart Inventory Check
+        const availableFabric = stockDatabase[fabricType] || 5000;
+        document.getElementById("invAvailable").innerText = availableFabric.toLocaleString() + " meters";
+        document.getElementById("invRequired").innerText = totalFabric.toLocaleString() + " meters";
+
+        const purchaseAmount = Math.max(0, totalFabric - availableFabric);
+        document.getElementById("invPurchase").innerText = purchaseAmount.toLocaleString() + " meters";
+
+        const invBadge = document.getElementById("invBadge");
+        const statusBox = document.getElementById("purchaseStatusBox");
+        const progressBar = document.getElementById("invProgressBar");
+        
+        const coveragePercent = Math.min(100, Math.round((availableFabric / totalFabric) * 100));
+        progressBar.style.width = coveragePercent + "%";
+
+        if (coveragePercent >= 100) {
+            invBadge.className = "badge bg-success px-3 py-2 fs-6";
+            invBadge.innerText = "Sufficient Stock";
+            statusBox.style.borderLeft = "5px solid #10b981";
+            progressBar.className = "progress-bar bg-success";
+        } else if (coveragePercent >= 75) {
+            invBadge.className = "badge bg-warning text-dark px-3 py-2 fs-6";
+            invBadge.innerText = "Low Stock Alert";
+            statusBox.style.borderLeft = "5px solid #f59e0b";
+            progressBar.className = "progress-bar bg-warning";
+        } else {
+            invBadge.className = "badge bg-danger px-3 py-2 fs-6";
+            invBadge.innerText = "Critical Deficit";
+            statusBox.style.borderLeft = "5px solid #ef4444";
+            progressBar.className = "progress-bar bg-danger";
+        }
+
+        // 5. AI Recommendations
+        const recContainer = document.getElementById("aiRecommendationsContainer");
+        recContainer.innerHTML = "";
+
+        const recommendations = [];
+        if (workersNeeded > 15) {
+            recommendations.push(`Increase ${Math.ceil(workersNeeded * 0.15)} stitching workers to ensure optimal line balancing.`);
+        }
+        if (purchaseAmount > 0) {
+            recommendations.push(`Fabric stock is low. Purchase ${purchaseAmount} meters of ${fabricType} fabric immediately.`);
+        } else {
+            recommendations.push(`Available ${fabricType} stock is sufficient to start immediate fabrication.`);
+        }
+        if (quantity > 3000) {
+            recommendations.push(`Cutting department may become a bottleneck due to large order volume.`);
+        }
+        
+        const riskLevel = diffDays < targetDays ? "High" : (diffDays - targetDays < 3 ? "Medium" : "Low");
+        recommendations.push(`Delivery timeline risk level is rated ${riskLevel}.`);
+        
+        const startOffset = Math.max(1, diffDays - targetDays - 2);
+        const startDate = new Date(today.getTime() + startOffset * 24 * 60 * 60 * 1000);
+        recommendations.push(`Suggested production line start date: ${startDate.toLocaleDateString()}.`);
+
+        if (diffDays < targetDays) {
+            recommendations.push(`Suggested overtime of 2 hours per shift to meet delivery timeline.`);
+        }
+
+        recommendations.forEach(rec => {
+            const card = document.createElement("div");
+            card.className = "ai-rec-card d-flex gap-3 align-items-start";
+            card.innerHTML = `
+                <div class="text-primary"><i class="bi bi-info-circle-fill fs-5"></i></div>
+                <div><small class="text-slate-700">${rec}</small></div>
+            `;
+            recContainer.appendChild(card);
+        });
+
+        // 6. Production Timeline Stages
+        // Reset all active classes
+        document.querySelectorAll(".flow-step").forEach(step => {
+            step.classList.remove("active", "completed");
+        });
+
+        const timelineProgress = document.getElementById("timelineProgress");
+        if (coveragePercent >= 100) {
+            document.getElementById("step1").classList.add("completed");
+            document.getElementById("step2").classList.add("completed");
+            document.getElementById("step3").classList.add("active");
+            timelineProgress.style.width = "28%";
+        } else {
+            document.getElementById("step1").classList.add("completed");
+            document.getElementById("step2").classList.add("active");
+            timelineProgress.style.width = "14%";
+        }
+
+        // 7. Cost Chart Update
+        document.getElementById("costTotalLabel").innerText = '₹' + totalCost.toLocaleString();
+        updateCostChart(fabricCost, laborCost, machineCost, accessoriesCost, packingCost, overheadCost);
+
+        // 8. Material Consumption Grid
+        const matGrid = document.getElementById("materialsGrid");
+        matGrid.innerHTML = "";
+
+        const materialsList = [
+            { name: 'Cotton Fabric', type: 'Fabric', req: fabricType === 'Cotton' ? totalFabric : 0, av: stockDatabase['Cotton'], unit: 'm' },
+            { name: 'Polyester Fabric', type: 'Fabric', req: fabricType === 'Polyester' ? totalFabric : 0, av: stockDatabase['Polyester'], unit: 'm' },
+            { name: 'Denim Fabric', type: 'Fabric', req: fabricType === 'Denim' ? totalFabric : 0, av: stockDatabase['Denim'], unit: 'm' },
+            { name: 'Silk Fabric', type: 'Fabric', req: fabricType === 'Silk' ? totalFabric : 0, av: stockDatabase['Silk'], unit: 'm' },
+            { name: 'Thread', type: 'Accessory', req: totalThreadSpools, av: stockDatabase['Thread'], unit: 'spools' },
+            { name: 'Buttons', type: 'Accessory', req: productType === 'Shirts' ? quantity * 8 : 0, av: stockDatabase['Buttons'], unit: 'pcs' },
+            { name: 'Labels', type: 'Accessory', req: totalLabels, av: stockDatabase['Labels'], unit: 'pcs' },
+            { name: 'Packing Covers', type: 'Accessory', req: totalCovers, av: stockDatabase['Packing Covers'], unit: 'pcs' },
+            { name: 'Carton Boxes', type: 'Accessory', req: totalCartons, av: stockDatabase['Cartons'], unit: 'pcs' }
+        ];
+
+        materialsList.forEach(mat => {
+            const bal = mat.av - mat.req;
+            const status = bal >= 0 ? 'text-success' : 'text-danger';
+            const statusText = bal >= 0 ? 'Sufficient' : 'Deficit';
+            const statusBadge = bal >= 0 ? 'bg-success' : 'bg-danger';
+
+            const card = document.createElement("div");
+            card.className = "col-md-4";
+            card.innerHTML = `
+                <div class="p-3 bg-white border rounded shadow-sm">
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong class="text-slate-800">${mat.name}</strong>
+                        <span class="badge ${statusBadge}">${statusText}</span>
+                    </div>
+                    <div class="row g-1 text-sm text-muted">
+                        <div class="col-6">Required: <strong>${mat.req.toLocaleString()} ${mat.unit}</strong></div>
+                        <div class="col-6">Available: <strong>${mat.av.toLocaleString()} ${mat.unit}</strong></div>
+                        <div class="col-12 mt-1">Balance: <strong class="${status}">${bal.toLocaleString()} ${mat.unit}</strong></div>
+                    </div>
+                </div>
+            `;
+            matGrid.appendChild(card);
+        });
+
+        // 9. AI Insights & Efficiency Dials
+        const eff = Math.min(96, Math.round(85 + Math.random() * 10));
+        const workerUtil = Math.min(100, Math.round(workersNeeded > 25 ? 95 : 75 + Math.random() * 15));
+        const machUtil = Math.min(100, Math.round(machinesNeeded > 20 ? 92 : 70 + Math.random() * 20));
+        const invHealth = Math.round((materialsList.filter(m => m.av >= m.req).length / materialsList.length) * 100);
+
+        document.getElementById("insightEff").innerText = eff + "%";
+        document.getElementById("barEff").style.width = eff + "%";
+
+        document.getElementById("insightWork").innerText = workerUtil + "%";
+        document.getElementById("barWork").style.width = workerUtil + "%";
+
+        document.getElementById("insightMach").innerText = machUtil + "%";
+        document.getElementById("barMach").style.width = machUtil + "%";
+
+        document.getElementById("insightInv").innerText = invHealth + "%";
+        document.getElementById("barInv").style.width = invHealth + "%";
+
+        const confidence = diffDays >= targetDays ? 98 : Math.max(10, Math.round(100 - (targetDays - diffDays) * 20));
+        document.getElementById("insightConf").innerText = confidence + "%";
+        
+        const risk = confidence > 85 ? "Low" : (confidence > 50 ? "Medium" : "High");
+        const riskLabel = document.getElementById("insightRisk");
+        riskLabel.innerText = risk;
+        riskLabel.className = risk === "Low" ? "text-success fw-bold" : (risk === "Medium" ? "text-warning fw-bold" : "text-danger fw-bold");
+
+        let score = 'A+';
+        if (confidence < 50 || invHealth < 60) score = 'C';
+        else if (confidence < 80 || invHealth < 80) score = 'B';
+        else if (confidence < 95) score = 'A';
+        document.getElementById("insightScore").innerText = score;
+    }
+
+    function updateCostChart(fabric, labor, machine, acc, packing, overhead) {
+        const ctx = document.getElementById('costBreakdownChart').getContext('2d');
+        
+        if (costChartInstance) {
+            costChartInstance.destroy();
+        }
+
+        costChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fabric Cost', 'Labour Cost', 'Machine Cost', 'Accessories', 'Packing Cost', 'Overhead Cost'],
+                datasets: [{
+                    data: [fabric, labor, machine, acc, packing, overhead],
+                    backgroundColor: [
+                        '#1e3a8a', // Royal Blue
+                        '#0d9488', // Teal/Cyan
+                        '#f59e0b', // Yellow
+                        '#6366f1', // Indigo
+                        '#ef4444', // Red
+                        '#9ca3af'  // Gray
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function reset3DCamera() {
+        document.getElementById("simulationForm").reset();
+        const today = new Date();
+        const futureDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+        document.getElementById("deliveryDate").value = futureDate.toISOString().split('T')[0];
+        generateAIPlan(null);
+    }
+</script>
+{% endblock %}

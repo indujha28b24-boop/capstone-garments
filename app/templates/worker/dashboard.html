@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}{{ department }} Department Portal - StitchTech ERP{% endblock %}
+{% block header_title %}{{ department }} Station & Task Dashboard{% endblock %}
+
+{% block content %}
+<div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%); color: white; border: none;">
+    <h4 class="fw-bold mb-1 brand-font">Welcome to FAB FORA INTERNATIONAL PVT. LTD.</h4>
+    <p class="mb-0 text-white-50 small">Smart AI-Powered Garment Manufacturing & Production Planning Platform</p>
+</div>
+
+<!-- Worker Profile Banner -->
+<div class="glass-card p-4 mb-4">
+    <div class="row align-items-center g-4">
+        <div class="col-md-7">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-{% if department == 'Cutting' %}info{% elif department == 'Quality Check' %}warning{% elif department == 'Packing' %}success{% else %}primary{% endif %} text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                    <i class="bi {% if department == 'Cutting' %}bi-scissors{% elif department == 'Quality Check' %}bi-patch-check-fill{% elif department == 'Packing' %}bi-box-seam-fill{% else %}bi-thread{% endif %} fs-1"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-1">{{ worker.name }}</h4>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="badge bg-primary px-3 py-1">{{ department }} Department</span>
+                        <span class="badge bg-info-subtle text-info-emphasis px-3 py-1">{{ worker.skill }}</span>
+                        <span class="badge bg-success px-2 py-1">Status: Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5 text-md-end">
+            <!-- Attendance Mark -->
+            <form action="{{ url_for('worker.mark_attendance') }}" method="POST" class="d-inline-block p-3 bg-light rounded-4 border">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold small text-slate-700">Today's Attendance:</span>
+                    <select name="attendance_status" class="form-select form-select-sm" style="width: 120px;">
+                        <option value="Present" {% if today_attendance and today_attendance.status == 'Present' %}selected{% endif %}>Present</option>
+                        <option value="Half Day" {% if today_attendance and today_attendance.status == 'Half Day' %}selected{% endif %}>Half Day</option>
+                        <option value="Leave" {% if today_attendance and today_attendance.status == 'Leave' %}selected{% endif %}>Leave</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-success px-3 rounded-pill">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if department == 'Quality Check' %}
+<!-- Quality Inspection Summary Cards (Tasks 4, 5, 6, 8) -->
+<div class="row g-4 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small text-uppercase fw-semibold">Total Inspected</span>
+                <i class="bi bi-clipboard2-data-fill text-info fs-5"></i>
+            </div>
+            <div class="h3 fw-bold text-info mb-0">{{ total_inspected }}</div>
+            <small class="text-muted" style="font-size: 0.72rem;">Units inspected across orders</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small text-uppercase fw-semibold">Passed</span>
+                <i class="bi bi-patch-check-fill text-success fs-5"></i>
+            </div>
+            <div class="h3 fw-bold text-success mb-0">{{ total_passed }}</div>
+            <small class="text-muted" style="font-size: 0.72rem;">Units cleared quality standards</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small text-uppercase fw-semibold">Defective</span>
+                <i class="bi bi-x-octagon-fill text-danger fs-5"></i>
+            </div>
+            <div class="h3 fw-bold text-danger mb-0">{{ total_defective }}</div>
+            <small class="text-muted" style="font-size: 0.72rem;">Defective units detected</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small text-uppercase fw-semibold">Rework Required</span>
+                <i class="bi bi-arrow-repeat text-warning fs-5"></i>
+            </div>
+            <div class="h3 fw-bold text-warning mb-0">{{ total_rework }}</div>
+            <small class="text-muted" style="font-size: 0.72rem;">Sessions flagged for rework</small>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- NEW ROLE-BASED DASHBOARD: Worker Personal Targets -->
+<div class="row g-4 mb-4">
+    <!-- Today's Target -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-bullseye me-2 text-primary"></i>My Daily Target</h5>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Target Quantity</span>
+                <span class="fw-bold text-slate-800">{{ worker_daily_target }} pcs</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+                <span class="text-muted">Completed Today</span>
+                <span class="fw-bold text-success">{{ worker_completed_today }} pcs</span>
+            </div>
+            <div class="progress mb-2" style="height: 8px;">
+                <div class="progress-bar bg-success" style="width: {{ (worker_completed_today / worker_daily_target * 100)|round|int if worker_daily_target else 0 }}%;"></div>
+            </div>
+            <div class="d-flex justify-content-between small">
+                <span class="text-muted">{{ (worker_completed_today / worker_daily_target * 100)|round|int if worker_daily_target else 0 }}% Achieved</span>
+                <span class="text-danger fw-semibold">{{ worker_remaining }} pcs remaining</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Important Announcements -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="bi bi-megaphone-fill me-2 text-warning"></i>Important Announcements</h5>
+            <div class="vstack gap-3">
+                {% for ann in announcements %}
+                <div class="p-3 rounded-3 bg-light border shadow-sm d-flex gap-3 align-items-start">
+                    <i class="bi bi-info-circle-fill text-{% if ann.priority == 'Critical' or ann.priority == 'High' %}danger{% else %}info{% endif %} fs-4"></i>
+                    <div>
+                        <div class="fw-bold text-slate-800">{{ ann.message }}</div>
+                        <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ ann.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted p-3">
+                    <i class="bi bi-check-circle fs-3 d-block mb-2"></i> No active announcements today. Keep up the good work!
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Productivity Scorecard -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100 text-center">
+            <h5 class="fw-bold mb-3"><i class="bi bi-{% if department == 'Quality Check' %}patch-check-fill text-info{% else %}speedometer text-primary{% endif %} me-2"></i>{% if department == 'Quality Check' %}Quality Pass Rate{% else %}Productivity Rating{% endif %}</h5>
+            <div class="my-3">
+                <div class="display-3 fw-bold text-primary mb-0">{% if department == 'Quality Check' %}{{ pass_rate }}{% else %}{{ performance.productivity_score if performance else 95.0 }}{% endif %}%</div>
+                <div class="badge bg-success-subtle text-success fs-6 px-3 py-1">Grade: A+ Senior Inspector</div>
+            </div>
+            <hr>
+            <div class="row text-center">
+                <div class="col-6 border-end">
+                    <small class="text-muted d-block">{% if department == 'Quality Check' %}Units Inspected{% else %}Units Processed{% endif %}</small>
+                    <span class="fw-bold fs-5 text-slate-800">{% if department == 'Quality Check' %}{{ total_inspected }}{% else %}{{ performance.completed_tasks if performance else 24 }}{% endif %}</span>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted d-block">Attendance Score</small>
+                    <span class="fw-bold fs-5 text-success">100%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-trophy-fill me-2 text-warning"></i>Worker Leaderboard & Highlights</h5>
+                <span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i> Best Worker of the Month</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Worker Name</th>
+                            <th>Department</th>
+                            <th>Efficiency</th>
+                            <th>Completed Tasks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w_rec, p_rec in top_performers %}
+                        <tr {% if loop.first %}class="table-warning fw-bold"{% endif %}>
+                            <td>
+                                {% if loop.first %}
+                                    <span class="badge bg-warning text-dark rounded-circle px-2 py-1"><i class="bi bi-crown-fill"></i> 1</span>
+                                {% else %}
+                                    <span class="fw-bold text-muted">#{{ loop.index }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ w_rec.name }}</td>
+                            <td><span class="badge bg-primary-subtle text-primary">{{ w_rec.department }}</span></td>
+                            <td class="fw-bold text-success">{{ p_rec.productivity_score }}%</td>
+                            <td>{{ p_rec.completed_tasks }} units</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Task Queue -->
+<div class="glass-card p-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-card-checklist me-2 text-primary"></i>Assigned {{ department }} Queue</h5>
+        <span class="badge bg-primary px-3 py-1">{{ assigned_orders|length }} Batches Queue</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Garment Type</th>
+                    <th>Total Batch Size</th>
+                    <th>Current Stage</th>
+                    <th>Completion Progress</th>
+                    <th>Deadline</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ord in assigned_orders %}
+                <tr>
+                    <td class="fw-bold">#{{ ord.id }}</td>
+                    <td><span class="badge bg-primary-subtle text-primary">{{ ord.garment_type }}</span></td>
+                    <td class="fw-bold">{{ "{:,}".format(ord.quantity) }} pcs</td>
+                    <td><span class="badge bg-info-subtle text-info-emphasis px-3 py-1">{{ ord.current_stage }}</span></td>
+                    <td style="width: 170px;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-primary" style="width: {{ ord.progress_percentage }}%;"></div>
+                            </div>
+                            <small class="fw-bold">{{ ord.progress_percentage }}%</small>
+                        </div>
+                    </td>
+                    <td>{{ ord.deadline.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if department == 'Quality Check' %}
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-primary rounded-pill px-2" data-bs-toggle="modal" data-bs-target="#updateTaskModal{{ ord.id }}">
+                                    <i class="bi bi-check-circle me-1"></i> Pass QA
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-2" data-bs-toggle="modal" data-bs-target="#defectModal{{ ord.id }}">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Report Defect
+                                </button>
+                            </div>
+                        {% elif department == 'Packing' %}
+                            <form action="{{ url_for('worker.update_task_progress') }}" method="POST">
+                                <input type="hidden" name="order_id" value="{{ ord.id }}">
+                                <input type="hidden" name="action_type" value="dispatch">
+                                <input type="hidden" name="progress_percentage" value="100">
+                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
+                                    <i class="bi bi-box-seam me-1"></i> Confirm Dispatch
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-sm btn-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#updateTaskModal{{ ord.id }}">
+                                <i class="bi bi-pencil-square me-1"></i> Update Output
+                            </button>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <!-- Modal: Standard Progress Update -->
+                <div class="modal fade" id="updateTaskModal{{ ord.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content rounded-4 border-0">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Log Output - Order #{{ ord.id }}</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="{{ url_for('worker.update_task_progress') }}" method="POST">
+                                <input type="hidden" name="order_id" value="{{ ord.id }}">
+                                <input type="hidden" name="action_type" value="progress">
+                                <div class="modal-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Stage Completion (0 - 100%)</label>
+                                        <input type="number" name="progress_percentage" class="form-control" value="{{ ord.progress_percentage }}" min="0" max="100" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Processed Pieces Today</label>
+                                        <input type="number" name="completed_quantity" class="form-control" value="30" min="1" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary px-4">Submit Output</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal: QA Defect Reporting -->
+                <div class="modal fade" id="defectModal{{ ord.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content rounded-4 border-0">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Report Defect - Order #{{ ord.id }}</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="{{ url_for('worker.update_task_progress') }}" method="POST">
+                                <input type="hidden" name="order_id" value="{{ ord.id }}">
+                                <input type="hidden" name="action_type" value="defect">
+                                <input type="hidden" name="progress_percentage" value="{{ ord.progress_percentage }}">
+                                <div class="modal-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Defect Description / QA Issue</label>
+                                        <textarea name="defect_details" class="form-control" rows="3" placeholder="e.g. Unaligned seam stitching or fabric discoloration on collar..." required>Un-aligned buttonhole stitching detected on 15 units.</textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger px-4">Issue QA Defect Alert</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <tr><td colspan="7" class="text-muted">No active orders queued for {{ department }}.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
